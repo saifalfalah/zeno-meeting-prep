@@ -39,44 +39,44 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 ### Database & ORM Setup
 
-- [ ] T008 Install Drizzle ORM and configure Neon Postgres client in lib/db/client.ts
-- [ ] T009 Define database schema for all entities in lib/db/schema.ts (users, campaigns, webhookSubscriptions, meetings, prospects, companies, researchBriefs, prospectInfo, researchSources, adHocResearchRequests, meetingProspects)
-- [ ] T010 Configure Drizzle relations for type-safe queries in lib/db/schema.ts
-- [ ] T011 Create database migration scripts with drizzle-kit
-- [ ] T012 [P] Create db query helpers for campaigns in lib/db/queries/campaigns.ts
-- [ ] T013 [P] Create db query helpers for meetings in lib/db/queries/meetings.ts
-- [ ] T014 [P] Create db query helpers for briefs in lib/db/queries/briefs.ts
-- [ ] T015 [P] Create db query helpers for prospects in lib/db/queries/prospects.ts
-- [ ] T016 [P] Create db query helpers for companies in lib/db/queries/companies.ts
-- [ ] T017 [P] Create db query helpers for ad-hoc requests in lib/db/queries/adhoc.ts
+- [X] T008 Install Drizzle ORM and configure Neon Postgres client in lib/db/client.ts
+- [X] T009 Define database schema for all entities in lib/db/schema.ts (users, campaigns, webhookSubscriptions, meetings, prospects, companies, researchBriefs, prospectInfo, researchSources, adHocResearchRequests, meetingProspects)
+- [X] T010 Configure Drizzle relations for type-safe queries in lib/db/schema.ts
+- [X] T011 Create database migration scripts with drizzle-kit
+- [X] T012 [P] Create db query helpers for campaigns in lib/db/queries/campaigns.ts
+- [X] T013 [P] Create db query helpers for meetings in lib/db/queries/meetings.ts
+- [X] T014 [P] Create db query helpers for briefs in lib/db/queries/briefs.ts
+- [X] T015 [P] Create db query helpers for prospects in lib/db/queries/prospects.ts
+- [X] T016 [P] Create db query helpers for companies in lib/db/queries/companies.ts
+- [X] T017 [P] Create db query helpers for ad-hoc requests in lib/db/queries/adhoc.ts
 
 ### Authentication Setup
 
-- [ ] T018 Install NextAuth v5 and configure Google OAuth provider in lib/auth/config.ts
-- [ ] T019 Define NextAuth TypeScript types in types/next-auth.d.ts
-- [ ] T020 Implement JWT callback with token refresh logic in lib/auth/config.ts
-- [ ] T021 Create NextAuth API route handlers in app/api/auth/[...nextauth]/route.ts
-- [ ] T022 Create auth middleware for protected routes in middleware.ts
+- [X] T018 Install NextAuth v5 and configure Google OAuth provider in lib/auth/config.ts
+- [X] T019 Define NextAuth TypeScript types in types/next-auth.d.ts
+- [X] T020 Implement JWT callback with token refresh logic in lib/auth/config.ts
+- [X] T021 Create NextAuth API route handlers in app/api/auth/[...nextauth]/route.ts
+- [X] T022 Create auth middleware for protected routes in middleware.ts
 
 ### Background Jobs Setup
 
-- [ ] T023 Install Inngest and create client in lib/inngest/client.ts
-- [ ] T024 Create Inngest API route in app/api/inngest/route.ts
-- [ ] T025 Define Inngest event types in lib/inngest/events.ts
+- [X] T023 Install Inngest and create client in lib/inngest/client.ts
+- [X] T024 Create Inngest API route in app/api/inngest/route.ts
+- [X] T025 Define Inngest event types in lib/inngest/events.ts
 
 ### UI Foundation
 
-- [ ] T026 [P] Create base UI components (Button, Card, Badge, Input) in components/ui/
-- [ ] T027 [P] Create layout components (Navbar, Sidebar) in components/layout/
-- [ ] T028 Configure Tailwind theme with custom colors in app/globals.css using @theme directive
-- [ ] T029 Create root layout with providers in app/layout.tsx
-- [ ] T030 Create loading and error boundary components
+- [X] T026 [P] Create base UI components (Button, Card, Badge, Input) in components/ui/
+- [X] T027 [P] Create layout components (Navbar, Sidebar) in components/layout/
+- [X] T028 Configure Tailwind theme with custom colors in app/globals.css using @theme directive
+- [X] T029 Create root layout with providers in app/layout.tsx
+- [X] T030 Create loading and error boundary components
 
 ### Utility Functions
 
-- [ ] T031 [P] Create timezone utilities in lib/utils/timezone.ts
-- [ ] T032 [P] Create email utilities for domain extraction in lib/utils/email.ts
-- [ ] T033 [P] Create constants file for status values and thresholds in lib/utils/constants.ts
+- [X] T031 [P] Create timezone utilities in lib/utils/timezone.ts
+- [X] T032 [P] Create email utilities for domain extraction in lib/utils/email.ts
+- [X] T033 [P] Create constants file for status values and thresholds in lib/utils/constants.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
