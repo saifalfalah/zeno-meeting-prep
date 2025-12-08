@@ -90,20 +90,20 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 ### Implementation for User Story 1
 
-- [ ] T034 [P] [US1] Create MeetingCard component in components/calendar/MeetingCard.tsx
-- [ ] T035 [P] [US1] Create StatusBadge component for research status in components/ui/StatusBadge.tsx
-- [ ] T036 [P] [US1] Create ViewToggle component for view switching in components/calendar/ViewToggle.tsx
-- [ ] T037 [US1] Create DailyView component in components/calendar/DailyView.tsx
-- [ ] T038 [US1] Create WeeklyView component in components/calendar/WeeklyView.tsx
-- [ ] T039 [US1] Create MonthlyView component in components/calendar/MonthlyView.tsx
-- [ ] T040 [US1] Create CalendarNavigation component (prev/next/today) in components/calendar/CalendarNavigation.tsx
-- [ ] T041 [US1] Create CampaignFilter dropdown component in components/calendar/CampaignFilter.tsx
-- [ ] T042 [US1] Implement GET /api/meetings endpoint in app/api/meetings/route.ts
-- [ ] T043 [US1] Create main dashboard page with calendar views in app/(dashboard)/page.tsx
-- [ ] T044 [US1] Add keyboard shortcuts for view switching (D, W, M keys) in dashboard client component
-- [ ] T045 [US1] Implement timezone detection and display conversion in dashboard
-- [ ] T046 [US1] Add relative time indicators ("in X hours") to meeting cards
-- [ ] T047 [US1] Handle empty state when no meetings are scheduled
+- [X] T034 [P] [US1] Create MeetingCard component in components/calendar/MeetingCard.tsx
+- [X] T035 [P] [US1] Create StatusBadge component for research status in components/ui/StatusBadge.tsx
+- [X] T036 [P] [US1] Create ViewToggle component for view switching in components/calendar/ViewToggle.tsx
+- [X] T037 [US1] Create DailyView component in components/calendar/DailyView.tsx
+- [X] T038 [US1] Create WeeklyView component in components/calendar/WeeklyView.tsx
+- [X] T039 [US1] Create MonthlyView component in components/calendar/MonthlyView.tsx
+- [X] T040 [US1] Create CalendarNavigation component (prev/next/today) in components/calendar/CalendarNavigation.tsx
+- [X] T041 [US1] Create CampaignFilter dropdown component in components/calendar/CampaignFilter.tsx
+- [X] T042 [US1] Implement GET /api/meetings endpoint in app/api/meetings/route.ts
+- [X] T043 [US1] Create main dashboard page with calendar views in app/(dashboard)/page.tsx
+- [X] T044 [US1] Add keyboard shortcuts for view switching (D, W, M keys) in dashboard client component
+- [X] T045 [US1] Implement timezone detection and display conversion in dashboard
+- [X] T046 [US1] Add relative time indicators ("in X hours") to meeting cards
+- [X] T047 [US1] Handle empty state when no meetings are scheduled
 
 **Checkpoint**: User Story 1 complete - dashboard shows meetings with research status
 
