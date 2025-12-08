@@ -21,13 +21,13 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 **Purpose**: Create project structure, install dependencies, configure tooling
 
-- [ ] T001 Initialize Next.js 15 project with TypeScript, App Router, and Tailwind CSS 4
-- [ ] T002 [P] Configure ESLint and Prettier with project-specific rules
-- [ ] T003 [P] Configure Vitest for unit testing in vitest.config.mts
-- [ ] T004 [P] Configure Playwright for E2E testing in playwright.config.ts
-- [ ] T005 [P] Create environment variables template in .env.example
-- [ ] T006 Setup PostCSS config for Tailwind 4 in postcss.config.mjs
-- [ ] T007 Create base project structure with app/, components/, lib/ directories
+- [X] T001 Initialize Next.js 15 project with TypeScript, App Router, and Tailwind CSS 4
+- [X] T002 [P] Configure ESLint and Prettier with project-specific rules
+- [X] T003 [P] Configure Vitest for unit testing in vitest.config.mts
+- [X] T004 [P] Configure Playwright for E2E testing in playwright.config.ts
+- [X] T005 [P] Create environment variables template in .env.example
+- [X] T006 Setup PostCSS config for Tailwind 4 in postcss.config.mjs
+- [X] T007 Create base project structure with app/, components/, lib/ directories
 
 ---
 

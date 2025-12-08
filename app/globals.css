@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* Custom theme configuration for Tailwind 4 */
+@theme {
+  --color-primary: #3b82f6;
+  --color-secondary: #8b5cf6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  --font-heading: "Inter", sans-serif;
+
+  /* Additional breakpoints if needed */
+  --breakpoint-xs: 375px;
+  --breakpoint-3xl: 1920px;
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-heading);
+}
