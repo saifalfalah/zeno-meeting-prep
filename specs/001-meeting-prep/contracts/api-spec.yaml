@@ -1,0 +1,856 @@
+openapi: 3.1.0
+info:
+  title: Pre-Call Intelligence Dashboard API
+  version: 1.0.0
+  description: |
+    API for the Pre-Call Intelligence Dashboard - automated research briefs for sales meetings.
+
+    **Authentication**: All endpoints except webhooks require NextAuth session authentication.
+
+    **Rate Limiting**: API routes respect standard Vercel limits (100 req/10s per IP).
+
+servers:
+  - url: http://localhost:3000/api
+    description: Local development
+  - url: https://app.example.com/api
+    description: Production (replace with actual domain)
+
+tags:
+  - name: Campaigns
+    description: Campaign management operations
+  - name: Meetings
+    description: Meeting and calendar operations
+  - name: Research
+    description: Research brief operations
+  - name: Ad-hoc
+    description: Ad-hoc research requests
+  - name: Webhooks
+    description: External webhook endpoints
+
+components:
+  securitySchemes:
+    nextAuth:
+      type: apiKey
+      in: cookie
+      name: next-auth.session-token
+      description: NextAuth session cookie (automatic in browser)
+
+  schemas:
+    Campaign:
+      type: object
+      required: [id, userId, name, status, companyName, companyDomain, offeringTitle, offeringDescription, googleCalendarId, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 255
+          example: "Enterprise SaaS Outreach"
+        status:
+          type: string
+          enum: [active, paused]
+          example: active
+        companyName:
+          type: string
+          example: "Acme Corp"
+        companyDomain:
+          type: string
+          example: "acmecorp.com"
+        companyDescription:
+          type: string
+          nullable: true
+        offeringTitle:
+          type: string
+          example: "Cold Email Automation Platform"
+        offeringDescription:
+          type: string
+        targetCustomer:
+          type: string
+          nullable: true
+        keyPainPoints:
+          type: array
+          items:
+            type: string
+          example: ["Low email deliverability", "Manual outreach workflows"]
+        googleCalendarId:
+          type: string
+          example: "primary"
+        googleCalendarName:
+          type: string
+          nullable: true
+          example: "Sales Calls"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Meeting:
+      type: object
+      required: [id, campaignId, googleEventId, title, startTime, endTime, timezone, status, researchStatus, hasExternalAttendees, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        campaignId:
+          type: string
+          format: uuid
+        googleEventId:
+          type: string
+        title:
+          type: string
+          example: "Discovery call with John Smith"
+        description:
+          type: string
+          nullable: true
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        timezone:
+          type: string
+          example: "America/Los_Angeles"
+        location:
+          type: string
+          nullable: true
+        meetLink:
+          type: string
+          nullable: true
+          example: "https://meet.google.com/abc-defg-hij"
+        status:
+          type: string
+          enum: [scheduled, cancelled, completed]
+        researchStatus:
+          type: string
+          enum: [none, pending, generating, ready, failed]
+        researchBriefId:
+          type: string
+          format: uuid
+          nullable: true
+        researchFailureReason:
+          type: string
+          nullable: true
+        hasExternalAttendees:
+          type: boolean
+        prospects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prospect'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Prospect:
+      type: object
+      required: [id, email, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          example: "john.smith@techcorp.com"
+        name:
+          type: string
+          nullable: true
+          example: "John Smith"
+        title:
+          type: string
+          nullable: true
+          example: "VP of Sales"
+        companyId:
+          type: string
+          format: uuid
+          nullable: true
+        location:
+          type: string
+          nullable: true
+          example: "San Francisco, CA"
+        linkedinUrl:
+          type: string
+          format: uri
+          nullable: true
+        lastResearchedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ResearchBrief:
+      type: object
+      required: [id, type, campaignId, confidenceRating, generatedAt, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [calendar, adhoc]
+        campaignId:
+          type: string
+          format: uuid
+        meetingId:
+          type: string
+          format: uuid
+          nullable: true
+        adHocRequestId:
+          type: string
+          format: uuid
+          nullable: true
+        confidenceRating:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+        confidenceExplanation:
+          type: string
+          nullable: true
+        companyOverview:
+          type: string
+          nullable: true
+        painPoints:
+          type: string
+          nullable: true
+        howWeFit:
+          type: string
+          nullable: true
+        openingLine:
+          type: string
+          nullable: true
+        discoveryQuestions:
+          type: array
+          items:
+            type: string
+          example: ["What's your current email sending volume?", "How do you currently measure deliverability?"]
+        successOutcome:
+          type: string
+          nullable: true
+        watchOuts:
+          type: string
+          nullable: true
+        recentSignals:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [positive, neutral, negative]
+              description:
+                type: string
+              date:
+                type: string
+                format: date
+        prospects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProspectInfo'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResearchSource'
+        pdfUrl:
+          type: string
+          format: uri
+          nullable: true
+        generatedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProspectInfo:
+      type: object
+      required: [id, researchBriefId, prospectId, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        researchBriefId:
+          type: string
+          format: uuid
+        prospectId:
+          type: string
+          format: uuid
+        title:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        background:
+          type: string
+          nullable: true
+        reportsTo:
+          type: string
+          nullable: true
+        teamSize:
+          type: string
+          nullable: true
+        recentActivity:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ResearchSource:
+      type: object
+      required: [id, researchBriefId, sourceType, url, accessedAt, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        researchBriefId:
+          type: string
+          format: uuid
+        sourceType:
+          type: string
+          enum: [company_website, linkedin, crunchbase, news, twitter, other]
+        url:
+          type: string
+          format: uri
+        title:
+          type: string
+          nullable: true
+        accessedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    AdHocResearchRequest:
+      type: object
+      required: [id, userId, campaignId, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        campaignId:
+          type: string
+          format: uuid
+        prospectName:
+          type: string
+          nullable: true
+        companyName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        status:
+          type: string
+          enum: [pending, generating, ready, failed]
+        researchBriefId:
+          type: string
+          format: uuid
+          nullable: true
+        failureReason:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          example: "ValidationError"
+        message:
+          type: string
+          example: "Campaign name is required"
+        field:
+          type: string
+          nullable: true
+          example: "name"
+
+paths:
+  # ===== Campaigns =====
+  /campaigns:
+    get:
+      summary: List user's campaigns
+      tags: [Campaigns]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, paused]
+          description: Filter by campaign status
+      responses:
+        '200':
+          description: List of campaigns
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  campaigns:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Campaign'
+        '401':
+          description: Unauthorized
+
+    post:
+      summary: Create new campaign
+      tags: [Campaigns]
+      security:
+        - nextAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, companyName, companyDomain, offeringTitle, offeringDescription, googleCalendarId]
+              properties:
+                name:
+                  type: string
+                companyName:
+                  type: string
+                companyDomain:
+                  type: string
+                companyDescription:
+                  type: string
+                offeringTitle:
+                  type: string
+                offeringDescription:
+                  type: string
+                targetCustomer:
+                  type: string
+                keyPainPoints:
+                  type: array
+                  items:
+                    type: string
+                googleCalendarId:
+                  type: string
+                googleCalendarName:
+                  type: string
+      responses:
+        '201':
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+
+  /campaigns/{id}:
+    get:
+      summary: Get campaign by ID
+      tags: [Campaigns]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Campaign details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '404':
+          description: Campaign not found
+
+    patch:
+      summary: Update campaign
+      tags: [Campaigns]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                status:
+                  type: string
+                  enum: [active, paused]
+                offeringDescription:
+                  type: string
+                targetCustomer:
+                  type: string
+                keyPainPoints:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Campaign updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '404':
+          description: Campaign not found
+
+    delete:
+      summary: Delete campaign
+      tags: [Campaigns]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Campaign deleted
+        '404':
+          description: Campaign not found
+
+  # ===== Meetings =====
+  /meetings:
+    get:
+      summary: List meetings
+      tags: [Meetings]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by campaign
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Start of date range
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          description: End of date range
+        - name: researchStatus
+          in: query
+          schema:
+            type: string
+            enum: [none, pending, generating, ready, failed]
+        - name: hasExternalAttendees
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of meetings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meetings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Meeting'
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+
+  /meetings/{id}:
+    get:
+      summary: Get meeting by ID
+      tags: [Meetings]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Meeting details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meeting'
+        '404':
+          description: Meeting not found
+
+  # ===== Research Briefs =====
+  /research/briefs/{id}:
+    get:
+      summary: Get research brief by ID
+      tags: [Research]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Research brief details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchBrief'
+        '404':
+          description: Brief not found
+
+  /research/briefs/{id}/pdf:
+    get:
+      summary: Generate PDF export of research brief
+      tags: [Research]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Brief not found
+
+  /research/trigger:
+    post:
+      summary: Manually trigger research for a meeting
+      tags: [Research]
+      security:
+        - nextAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meetingId]
+              properties:
+                meetingId:
+                  type: string
+                  format: uuid
+      responses:
+        '202':
+          description: Research job initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Research initiated"
+                  meetingId:
+                    type: string
+                    format: uuid
+        '400':
+          description: Meeting already has research or invalid state
+        '404':
+          description: Meeting not found
+
+  # ===== Ad-hoc Research =====
+  /adhoc:
+    get:
+      summary: List user's ad-hoc research requests
+      tags: [Ad-hoc]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: campaignId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, generating, ready, failed]
+      responses:
+        '200':
+          description: List of ad-hoc requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requests:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdHocResearchRequest'
+
+    post:
+      summary: Create ad-hoc research request
+      tags: [Ad-hoc]
+      security:
+        - nextAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [campaignId]
+              properties:
+                campaignId:
+                  type: string
+                  format: uuid
+                prospectName:
+                  type: string
+                companyName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        '201':
+          description: Ad-hoc request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdHocResearchRequest'
+        '400':
+          description: Validation error (at least one field required)
+
+  /adhoc/{id}:
+    get:
+      summary: Get ad-hoc request by ID
+      tags: [Ad-hoc]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ad-hoc request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdHocResearchRequest'
+
+    delete:
+      summary: Delete ad-hoc research request
+      tags: [Ad-hoc]
+      security:
+        - nextAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Ad-hoc request deleted
+        '404':
+          description: Request not found
+
+  # ===== Webhooks =====
+  /webhooks/google-calendar:
+    post:
+      summary: Google Calendar webhook notification
+      description: Receives push notifications from Google Calendar when events change
+      tags: [Webhooks]
+      parameters:
+        - name: X-Goog-Channel-ID
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-Goog-Resource-ID
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-Goog-Resource-State
+          in: header
+          required: true
+          schema:
+            type: string
+            enum: [sync, exists, not_exists]
+      responses:
+        '200':
+          description: Webhook acknowledged
+        '401':
+          description: Invalid webhook signature/channel
+        '410':
+          description: Webhook subscription expired
