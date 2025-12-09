@@ -84,6 +84,7 @@ describe('Research Orchestration Service', () => {
         brief: mockBriefData,
         prospectResearch: [mockProspectData],
         companyResearch: mockCompanyData,
+        isPartialData: false,
       });
     });
 
@@ -140,7 +141,7 @@ describe('Research Orchestration Service', () => {
       expect(result.prospectResearch).toEqual([]);
     });
 
-    it('should continue with MEDIUM confidence when company research fails', async () => {
+    it('should continue with LOW confidence when company research fails', async () => {
       vi.spyOn(perplexity, 'researchProspect').mockResolvedValueOnce({
         name: 'John Doe',
       });
@@ -159,8 +160,11 @@ describe('Research Orchestration Service', () => {
         prospects: mockProspects,
       });
 
-      expect(result.brief.confidenceRating).toBe('MEDIUM');
+      // Confidence should be overridden to LOW when company lookup fails (partial data)
+      expect(result.brief.confidenceRating).toBe('LOW');
       expect(result.companyResearch).toEqual({});
+      expect(result.isPartialData).toBe(true);
+      expect(result.brief.confidenceExplanation).toContain('Some research data was unavailable');
     });
 
     it('should throw error when brief generation fails', async () => {
