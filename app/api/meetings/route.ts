@@ -57,6 +57,12 @@ export async function GET(request: NextRequest) {
       researchBriefId: meeting.researchBriefId,
       researchFailureReason: meeting.researchFailureReason,
       hasExternalAttendees: meeting.hasExternalAttendees,
+      // Include campaign data for badge display
+      campaign: meeting.campaign ? {
+        id: meeting.campaign.id,
+        name: meeting.campaign.name,
+        status: meeting.campaign.status,
+      } : null,
       // Include related data if loaded
       prospects: meeting.meetingProspects?.map((mp) => ({
         id: mp.prospect.id,

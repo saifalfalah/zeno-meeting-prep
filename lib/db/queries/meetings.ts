@@ -13,6 +13,7 @@ export async function getMeetingsByCampaignId(campaignId: string) {
     where: eq(meetings.campaignId, campaignId),
     orderBy: [asc(meetings.startTime)],
     with: {
+      campaign: true,
       meetingProspects: {
         with: {
           prospect: {
@@ -43,6 +44,7 @@ export async function getMeetingsByDateRange(
     ),
     orderBy: [asc(meetings.startTime)],
     with: {
+      campaign: true,
       meetingProspects: {
         with: {
           prospect: {

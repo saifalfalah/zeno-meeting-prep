@@ -13,6 +13,11 @@ export interface Meeting {
   meetLink?: string | null;
   researchStatus: ResearchStatus;
   timezone: string;
+  campaign?: {
+    id: string;
+    name: string;
+    status: 'active' | 'paused';
+  } | null;
 }
 
 export interface DailyViewProps {

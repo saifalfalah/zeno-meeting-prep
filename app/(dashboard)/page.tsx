@@ -121,6 +121,7 @@ export default function DashboardPage() {
           meetLink: m.meetLink,
           researchStatus: m.researchStatus,
           timezone: m.timezone,
+          campaign: m.campaign,
         }));
 
         setMeetings(transformedMeetings);
