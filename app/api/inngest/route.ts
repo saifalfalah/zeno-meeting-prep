@@ -2,6 +2,7 @@ import { serve } from "inngest/next";
 import { inngest } from "@/lib/inngest/client";
 import { processWebhook } from "@/lib/inngest/functions/process-webhook";
 import { generateResearch } from "@/lib/inngest/functions/generate-research";
+import { generateAdHocResearch } from "@/lib/inngest/functions/generate-adhoc-research";
 import { sendResearchNotification } from "@/lib/inngest/functions/send-notification";
 import { renewWebhookSubscriptions } from "@/lib/inngest/functions/renew-webhooks";
 
@@ -10,6 +11,7 @@ export const { GET, POST, PUT } = serve({
   functions: [
     processWebhook,
     generateResearch,
+    generateAdHocResearch,
     sendResearchNotification,
     renewWebhookSubscriptions,
   ],
