@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button } from "../ui/Button";
+import { signOut } from "next-auth/react";
 
 export function Navbar() {
   return (
@@ -39,7 +40,7 @@ export function Navbar() {
             >
               + New Campaign
             </Link>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={() => signOut()}>
               Sign Out
             </Button>
           </div>

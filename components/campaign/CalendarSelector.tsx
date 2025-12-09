@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { signOut } from 'next-auth/react'
 import { CampaignFormData } from './SetupWizard'
 
 export interface CalendarSelectorProps {
@@ -34,7 +35,11 @@ export function CalendarSelector({ initialData, onNext, onCancel }: CalendarSele
       const response = await fetch('/api/google/calendars')
 
       if (!response.ok) {
-        throw new Error('Failed to fetch calendars')
+        const errorData = await response.json()
+        if (response.status === 401) {
+          throw new Error(errorData.error || 'Authentication failed. Please sign out and sign in again.')
+        }
+        throw new Error(errorData.error || 'Failed to fetch calendars')
       }
 
       const data = await response.json()
@@ -84,7 +89,15 @@ export function CalendarSelector({ initialData, onNext, onCancel }: CalendarSele
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+          <p className="font-medium">{error}</p>
+          {error.includes('Authentication failed') && (
+            <button
+              onClick={() => signOut()}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Sign out and try again
+            </button>
+          )}
         </div>
       )}
 
