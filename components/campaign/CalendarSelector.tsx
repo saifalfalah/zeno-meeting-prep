@@ -34,7 +34,15 @@ export function CalendarSelector({ initialData, onNext, onCancel }: CalendarSele
       const response = await fetch('/api/google/calendars')
 
       if (!response.ok) {
-        throw new Error('Failed to fetch calendars')
+        const errorData = await response.json()
+
+        // If re-authentication is required, show a specific error with action button
+        if (errorData.requiresReauth) {
+          setError(`AUTH_REQUIRED: ${errorData.message}`)
+          return
+        }
+
+        throw new Error(errorData.message || 'Failed to fetch calendars')
       }
 
       const data = await response.json()
@@ -84,7 +92,27 @@ export function CalendarSelector({ initialData, onNext, onCancel }: CalendarSele
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <p className="font-medium mb-1">Authentication Error</p>
+              <p className="text-sm">
+                {error.startsWith('AUTH_REQUIRED:') ? error.replace('AUTH_REQUIRED: ', '') : error}
+              </p>
+            </div>
+          </div>
+          {error.startsWith('AUTH_REQUIRED:') && (
+            <div className="mt-3">
+              <a
+                href="/api/auth/signin/google?callbackUrl=/settings/new"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
+                </svg>
+                Re-authenticate with Google
+              </a>
+            </div>
+          )}
         </div>
       )}
 
