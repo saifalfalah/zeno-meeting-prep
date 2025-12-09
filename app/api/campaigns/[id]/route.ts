@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth/config'
 import { db } from '@/lib/db/client'
 import { campaigns, users, webhookSubscriptions } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { stopWebhookSubscription } from '@/lib/services/google-calendar'
+import { stopWebhookSubscription, createWebhookSubscription } from '@/lib/services/google-calendar'
 import { z } from 'zod'
 
 // Validation schema for campaign update
@@ -183,9 +183,51 @@ export async function PATCH(request: NextRequest, props: RouteParams) {
             // Continue with campaign pause even if webhook stop fails
           }
         }
+      } else if (validatedData.status === 'active') {
+        // Resume webhook when activating (T104)
+        const existingSubscription = await db.query.webhookSubscriptions.findFirst({
+          where: eq(webhookSubscriptions.campaignId, params.id),
+        })
+
+        // Only create new webhook if previous one was cancelled/expired
+        if (!existingSubscription || existingSubscription.status !== 'active') {
+          try {
+            const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/google-calendar`
+
+            const newSubscription = await createWebhookSubscription(
+              existingCampaign.googleCalendarId,
+              webhookUrl,
+              session.access_token
+            )
+
+            const expiresAt = new Date(parseInt(newSubscription.expiration))
+
+            // Delete old subscription if exists
+            if (existingSubscription) {
+              await db.delete(webhookSubscriptions)
+                .where(eq(webhookSubscriptions.id, existingSubscription.id))
+            }
+
+            // Create new webhook subscription
+            await db.insert(webhookSubscriptions).values({
+              campaignId: params.id,
+              googleResourceId: newSubscription.resourceId,
+              googleChannelId: newSubscription.id,
+              expiresAt,
+              status: 'active',
+            })
+          } catch (webhookError) {
+            console.error('Failed to resume webhook subscription:', webhookError)
+            return NextResponse.json(
+              {
+                error: 'Failed to resume webhook subscription',
+                message: webhookError instanceof Error ? webhookError.message : 'Unknown error',
+              },
+              { status: 500 }
+            )
+          }
+        }
       }
-      // Note: Resuming a campaign requires creating a new webhook subscription
-      // This is handled separately in T104
     }
 
     // Update campaign
