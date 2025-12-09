@@ -3,7 +3,7 @@ import { RetryAfterError } from 'inngest';
 import { db } from '@/lib/db/client';
 import { meetings, adHocResearchRequests, researchBriefs, prospectInfo, researchSources, campaigns, companies, prospects } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { orchestrateResearch } from '@/lib/services/research';
+import { orchestrateResearch, type ResearchError } from '@/lib/services/research';
 
 /**
  * Generate research brief using Perplexity and Claude APIs
@@ -23,11 +23,16 @@ export const generateResearch = inngest.createFunction(
           adHocRequestId?: string;
         };
 
+        // Extract failure step from ResearchError if available
+        const researchError = error as ResearchError;
+        const failureStep = researchError.step || 'unknown';
+        const failureMessage = `[${failureStep}] ${error.message}`;
+
         if (eventData.type === 'calendar' && eventData.meetingId) {
           await db.update(meetings)
             .set({
               researchStatus: 'failed',
-              researchFailureReason: error.message,
+              researchFailureReason: failureMessage,
               updatedAt: new Date(),
             })
             .where(eq(meetings.id, eventData.meetingId));
@@ -35,7 +40,7 @@ export const generateResearch = inngest.createFunction(
           await db.update(adHocResearchRequests)
             .set({
               status: 'failed',
-              failureReason: error.message,
+              failureReason: failureMessage,
               updatedAt: new Date(),
             })
             .where(eq(adHocResearchRequests.id, eventData.adHocRequestId));

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { ResearchBriefPage, ResearchBriefPageProps } from "@/components/brief/ResearchBriefPage";
 import { Button } from "@/components/ui/Button";
 import { PDFDownloadButton } from "@/components/brief/PDFDownloadButton";
+import { ErrorDisplay } from "@/components/brief/ErrorDisplay";
 
 export default function MeetingDetailPage() {
   const params = useParams();
@@ -15,6 +16,9 @@ export default function MeetingDetailPage() {
   const [briefId, setBriefId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [researchFailed, setResearchFailed] = useState(false);
+  const [failureReason, setFailureReason] = useState<string | null>(null);
+  const [failureStep, setFailureStep] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchBrief() {
@@ -28,6 +32,17 @@ export default function MeetingDetailPage() {
           throw new Error("Failed to fetch meeting");
         }
         const meeting = await meetingResponse.json();
+
+        // Check if research failed
+        if (meeting.researchStatus === 'failed') {
+          setResearchFailed(true);
+          setFailureReason(meeting.researchFailureReason || "Research failed for unknown reason");
+          // Extract failure step from message format: [step] message
+          const stepMatch = meeting.researchFailureReason?.match(/^\[([^\]]+)\]/);
+          setFailureStep(stepMatch ? stepMatch[1] : 'unknown');
+          setLoading(false);
+          return;
+        }
 
         if (!meeting.researchBriefId) {
           throw new Error("No research brief available for this meeting");
@@ -61,6 +76,50 @@ export default function MeetingDetailPage() {
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
           <p className="text-gray-600">Loading research brief...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle failed research with retry option
+  if (researchFailed) {
+    const handleRetry = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await fetch('/api/research/trigger', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ meetingId }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to trigger research retry');
+        }
+
+        // Refresh the page to show new status
+        window.location.reload();
+      } catch (err) {
+        console.error('Error retrying research:', err);
+        setError(err instanceof Error ? err.message : 'Failed to retry research');
+        setLoading(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="mb-6">
+            <Button onClick={() => router.push("/")} variant="outline">
+              ← Back to Dashboard
+            </Button>
+          </div>
+
+          <ErrorDisplay
+            errorType={(failureStep || 'unknown') as 'prospect_lookup_failed' | 'company_lookup_failed' | 'brief_generation_failed' | 'rate_limit_exceeded' | 'api_timeout' | 'partial_data' | 'unknown'}
+            errorMessage={failureReason || 'Research failed for unknown reason'}
+            onRetry={handleRetry}
+          />
         </div>
       </div>
     );
