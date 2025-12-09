@@ -16,7 +16,7 @@ export function Navbar() {
 
           <div className="flex items-center gap-4">
             <Link
-              href="/dashboard"
+              href="/"
               className="text-sm font-medium text-gray-700 hover:text-gray-900"
             >
               Dashboard
@@ -32,6 +32,12 @@ export function Navbar() {
               className="text-sm font-medium text-gray-700 hover:text-gray-900"
             >
               Settings
+            </Link>
+            <Link
+              href="/settings/new"
+              className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700"
+            >
+              + New Campaign
             </Link>
             <Button size="sm" variant="outline">
               Sign Out
