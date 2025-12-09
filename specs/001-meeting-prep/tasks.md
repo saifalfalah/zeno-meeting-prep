@@ -183,9 +183,9 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 - [X] T085 [US4] Implement GET /api/research/briefs/[id]/pdf endpoint in app/api/research/briefs/[id]/pdf/route.ts
 - [X] T086 [US4] Add PDF download button to research brief page
 - [X] T087 [US4] Implement external attendee detection using company domain comparison
-- [ ] T088 [US4] Handle meeting reschedule without re-researching
-- [ ] T089 [US4] Handle new attendee added to existing meeting (trigger incremental research)
-- [ ] T090 [US4] Implement research caching for recurring meetings (7-day cache)
+- [X] T088 [US4] Handle meeting reschedule without re-researching
+- [X] T089 [US4] Handle new attendee added to existing meeting (trigger incremental research)
+- [X] T090 [US4] Implement research caching for recurring meetings (7-day cache)
 
 **Checkpoint**: User Story 4 complete - automatic research generation and PDF export working
 

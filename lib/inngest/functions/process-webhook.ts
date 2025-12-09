@@ -120,6 +120,16 @@ export const processWebhook = inngest.createFunction(
 
         const isNewMeeting = !meeting;
 
+        // T089: Track existing attendees for detecting new additions
+        const existingProspectEmails = meeting
+          ? await db.query.meetingProspects.findMany({
+              where: eq(meetingProspects.meetingId, meeting.id),
+              with: {
+                prospect: true,
+              },
+            }).then((mps) => mps.map((mp) => mp.prospect.email))
+          : [];
+
         if (!meeting) {
           // Create new meeting
           const [newMeeting] = await db.insert(meetings).values({
@@ -138,7 +148,8 @@ export const processWebhook = inngest.createFunction(
           }).returning();
           meeting = newMeeting;
         } else {
-          // Update existing meeting
+          // Update existing meeting - T088: preserve research status on reschedule
+          // Only update meeting details (time, location, etc.) without affecting research
           await db.update(meetings)
             .set({
               title: calEvent.summary || 'Untitled Meeting',
@@ -153,9 +164,13 @@ export const processWebhook = inngest.createFunction(
               updatedAt: new Date(),
             })
             .where(eq(meetings.id, meeting.id));
+          // Note: researchStatus and researchBriefId are intentionally NOT updated
+          // This preserves existing research when meeting is rescheduled
         }
 
-        // Process prospect relationships
+        // Process prospect relationships and track new attendees (T089)
+        const newAttendeeEmails: string[] = [];
+
         for (const attendee of externalAttendees) {
           // Find or create prospect
           let prospect = await db.query.prospects.findFirst({
@@ -190,14 +205,29 @@ export const processWebhook = inngest.createFunction(
               isOrganizer: attendee.organizer || false,
               responseStatus,
             });
+
+            // T089: Track new attendee added to existing meeting
+            if (!isNewMeeting && !existingProspectEmails.includes(attendee.email)) {
+              newAttendeeEmails.push(attendee.email);
+            }
           }
         }
+
+        // T089: Determine if incremental research should be triggered
+        const hasNewAttendees = newAttendeeEmails.length > 0;
+        const shouldTriggerIncrementalResearch =
+          !isNewMeeting &&
+          hasNewAttendees &&
+          meeting!.researchStatus === 'ready'; // Only trigger if previous research is complete
 
         return {
           meetingId: meeting!.id,
           hasExternalAttendees,
           isNewMeeting,
           externalAttendeesCount: externalAttendees.length,
+          hasNewAttendees,
+          newAttendeeEmails,
+          shouldTriggerIncrementalResearch,
         };
       });
 
@@ -205,8 +235,13 @@ export const processWebhook = inngest.createFunction(
     }
 
     // Step 4: Trigger research for new meetings with external attendees
+    // OR trigger incremental research for new attendees (T089)
     for (const event of processedEvents) {
-      if (event.hasExternalAttendees && event.isNewMeeting) {
+      const shouldTriggerResearch =
+        (event.hasExternalAttendees && event.isNewMeeting) ||
+        event.shouldTriggerIncrementalResearch;
+
+      if (shouldTriggerResearch) {
         await step.run(`trigger-research-${event.meetingId}`, async () => {
           // Fetch meeting with prospects
           const meeting = await db.query.meetings.findFirst({
@@ -220,7 +255,22 @@ export const processWebhook = inngest.createFunction(
             },
           });
 
-          if (!meeting) return { researchTriggered: false };
+          if (!meeting) return { researchTriggered: false, isIncremental: false };
+
+          // T089: For incremental research, only research new attendees
+          const prospectsToResearch = event.shouldTriggerIncrementalResearch
+            ? meeting.meetingProspects
+                .filter((mp) => event.newAttendeeEmails?.includes(mp.prospect.email))
+                .map((mp) => ({
+                  email: mp.prospect.email,
+                  name: mp.prospect.name || undefined,
+                  companyDomain: undefined, // Will be extracted from email
+                }))
+            : meeting.meetingProspects.map((mp) => ({
+                email: mp.prospect.email,
+                name: mp.prospect.name || undefined,
+                companyDomain: undefined, // Will be extracted from email
+              }));
 
           // Send research generation event
           await inngest.send({
@@ -229,23 +279,26 @@ export const processWebhook = inngest.createFunction(
               type: 'calendar',
               meetingId: meeting.id,
               campaignId,
-              prospects: meeting.meetingProspects.map((mp) => ({
-                email: mp.prospect.email,
-                name: mp.prospect.name || undefined,
-                companyDomain: undefined, // Will be extracted from email
-              })),
+              prospects: prospectsToResearch,
+              isIncremental: event.shouldTriggerIncrementalResearch || false,
               requestedAt: new Date().toISOString(),
             },
           });
 
-          return { researchTriggered: true };
+          return {
+            researchTriggered: true,
+            isIncremental: event.shouldTriggerIncrementalResearch || false,
+          };
         });
       }
     }
 
     return {
       processedEvents: processedEvents.length,
-      researchTriggered: processedEvents.filter((e) => e.hasExternalAttendees && e.isNewMeeting).length,
+      researchTriggered: processedEvents.filter(
+        (e) => (e.hasExternalAttendees && e.isNewMeeting) || e.shouldTriggerIncrementalResearch
+      ).length,
+      incrementalResearchTriggered: processedEvents.filter((e) => e.shouldTriggerIncrementalResearch).length,
     };
   }
 );
