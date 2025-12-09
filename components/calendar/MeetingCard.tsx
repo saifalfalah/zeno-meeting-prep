@@ -14,6 +14,11 @@ export interface MeetingCardProps {
   meetLink?: string | null;
   researchStatus: ResearchStatus;
   timezone: string;
+  campaign?: {
+    id: string;
+    name: string;
+    status: 'active' | 'paused';
+  } | null;
   className?: string;
 }
 
@@ -26,6 +31,7 @@ export function MeetingCard({
   meetLink,
   researchStatus,
   timezone,
+  campaign,
   className = "",
 }: MeetingCardProps) {
   const formatTime = (date: Date) => {
@@ -65,11 +71,23 @@ export function MeetingCard({
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <h3 className="font-semibold text-gray-900 truncate">{title}</h3>
                 {relativeTime && (
                   <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
                     {relativeTime}
+                  </span>
+                )}
+                {campaign && (
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                      campaign.status === 'active'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                    title={campaign.status === 'paused' ? 'Campaign is paused' : undefined}
+                  >
+                    {campaign.name}
                   </span>
                 )}
               </div>

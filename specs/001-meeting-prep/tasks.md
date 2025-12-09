@@ -220,15 +220,15 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 ### Implementation for User Story 6
 
-- [ ] T099 [US6] Update dashboard to support multi-campaign filtering
-- [ ] T100 [US6] Add campaign selector to dashboard header
-- [ ] T101 [US6] Display campaign badge on meeting cards
-- [ ] T102 [US6] Implement campaign pause/resume functionality in PATCH /api/campaigns/[id]
-- [ ] T103 [US6] Stop webhook monitoring when campaign paused
-- [ ] T104 [US6] Resume webhook monitoring when campaign resumed
-- [ ] T105 [US6] Preserve historical research when campaign deleted
-- [ ] T106 [US6] Add confirmation dialog for campaign deletion
-- [ ] T107 [US6] Implement renew-webhook-subscriptions Inngest cron function in lib/inngest/functions/renew-webhooks.ts
+- [X] T099 [US6] Update dashboard to support multi-campaign filtering
+- [X] T100 [US6] Add campaign selector to dashboard header
+- [X] T101 [US6] Display campaign badge on meeting cards
+- [X] T102 [US6] Implement campaign pause/resume functionality in PATCH /api/campaigns/[id]
+- [X] T103 [US6] Stop webhook monitoring when campaign paused
+- [X] T104 [US6] Resume webhook monitoring when campaign resumed
+- [X] T105 [US6] Preserve historical research when campaign deleted
+- [X] T106 [US6] Add confirmation dialog for campaign deletion
+- [X] T107 [US6] Implement renew-webhook-subscriptions Inngest cron function in lib/inngest/functions/renew-webhooks.ts
 
 **Checkpoint**: User Story 6 complete - multiple campaigns can be managed independently
 
