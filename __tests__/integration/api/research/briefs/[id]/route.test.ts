@@ -23,7 +23,7 @@ describe('GET /api/research/briefs/[id]', () => {
     vi.mocked(auth).mockResolvedValue(null);
 
     const request = new NextRequest('http://localhost:3000/api/research/briefs/123');
-    const response = await GET(request, { params: { id: '123' } });
+    const response = await GET(request, { params: Promise.resolve({ id: '123' }) });
 
     expect(response.status).toBe(401);
     const data = await response.json();
@@ -37,7 +37,7 @@ describe('GET /api/research/briefs/[id]', () => {
     vi.mocked(briefQueries.getResearchBriefById).mockResolvedValue(null);
 
     const request = new NextRequest('http://localhost:3000/api/research/briefs/invalid-id');
-    const response = await GET(request, { params: { id: 'invalid-id' } });
+    const response = await GET(request, { params: Promise.resolve({ id: 'invalid-id' }) });
 
     expect(response.status).toBe(404);
     const data = await response.json();
@@ -114,7 +114,7 @@ describe('GET /api/research/briefs/[id]', () => {
     vi.mocked(briefQueries.getResearchBriefById).mockResolvedValue(mockBrief as any);
 
     const request = new NextRequest('http://localhost:3000/api/research/briefs/brief-1');
-    const response = await GET(request, { params: { id: 'brief-1' } });
+    const response = await GET(request, { params: Promise.resolve({ id: 'brief-1' }) });
 
     expect(response.status).toBe(200);
     const data = await response.json();
@@ -145,7 +145,7 @@ describe('GET /api/research/briefs/[id]', () => {
     );
 
     const request = new NextRequest('http://localhost:3000/api/research/briefs/brief-1');
-    const response = await GET(request, { params: { id: 'brief-1' } });
+    const response = await GET(request, { params: Promise.resolve({ id: 'brief-1' }) });
 
     expect(response.status).toBe(500);
     const data = await response.json();
