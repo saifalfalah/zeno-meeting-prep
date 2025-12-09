@@ -11,6 +11,7 @@ export default function MeetingDetailPage() {
   const meetingId = params.id as string;
 
   const [briefData, setBriefData] = useState<ResearchBriefPageProps | null>(null);
+  const [briefId, setBriefId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +39,7 @@ export default function MeetingDetailPage() {
         }
         const brief = await briefResponse.json();
 
+        setBriefId(meeting.researchBriefId);
         setBriefData(brief);
       } catch (err) {
         console.error("Error fetching brief:", err);
@@ -103,17 +105,30 @@ export default function MeetingDetailPage() {
     );
   }
 
+  const handleDownloadPDF = () => {
+    if (briefId) {
+      window.open(`/api/research/briefs/${briefId}/pdf`, '_blank');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       {/* Header with back button */}
       <div className="max-w-5xl mx-auto px-4 mb-6">
-        <Button
-          onClick={() => router.push("/")}
-          variant="outline"
-          className="mb-4"
-        >
-          ← Back to Dashboard
-        </Button>
+        <div className="flex justify-between items-center mb-4">
+          <Button
+            onClick={() => router.push("/")}
+            variant="outline"
+          >
+            ← Back to Dashboard
+          </Button>
+          <Button
+            onClick={handleDownloadPDF}
+            variant="primary"
+          >
+            Download PDF
+          </Button>
+        </div>
         <h1 className="text-2xl font-bold text-gray-900">Research Brief</h1>
       </div>
 
