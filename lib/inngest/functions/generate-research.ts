@@ -2,7 +2,7 @@ import { inngest } from '../client';
 import { RetryAfterError } from 'inngest';
 import { db } from '@/lib/db/client';
 import { meetings, adHocResearchRequests, researchBriefs, prospectInfo, researchSources, campaigns, companies, prospects } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { orchestrateResearch } from '@/lib/services/research';
 
 /**
@@ -45,7 +45,88 @@ export const generateResearch = inngest.createFunction(
   },
   { event: 'research/generate.requested' },
   async ({ event, step }) => {
-    const { type, meetingId, adHocRequestId, campaignId, prospects } = event.data;
+    const { type, meetingId, adHocRequestId, campaignId, prospects, isIncremental } = event.data;
+
+    // Step 0: T090 - Check for cached research (7-day cache)
+    const cachedResearch = await step.run('check-cached-research', async () => {
+      // Skip cache for ad-hoc requests and incremental research
+      if (type === 'adhoc' || isIncremental) {
+        return { hasCachedResearch: false, cachedBriefId: null };
+      }
+
+      // Check if we have recent research for this meeting's prospects
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      // Get prospect emails
+      const prospectEmails = prospects.map((p: { email: string }) => p.email);
+
+      if (prospectEmails.length === 0) {
+        return { hasCachedResearch: false, cachedBriefId: null };
+      }
+
+      // Find recent meetings with the same prospects
+      const recentMeetingsWithSameProspects = await db.query.meetings.findFirst({
+        where: and(
+          eq(meetings.campaignId, campaignId),
+          eq(meetings.researchStatus, 'ready')
+        ),
+        with: {
+          meetingProspects: {
+            with: {
+              prospect: true,
+            },
+          },
+          researchBrief: true,
+        },
+        orderBy: (meetings, { desc }) => [desc(meetings.createdAt)],
+      });
+
+      if (!recentMeetingsWithSameProspects?.researchBrief) {
+        return { hasCachedResearch: false, cachedBriefId: null };
+      }
+
+      // Check if the prospects match and research is within 7 days
+      const cachedProspectEmails = recentMeetingsWithSameProspects.meetingProspects
+        .map((mp) => mp.prospect.email)
+        .sort();
+      const currentProspectEmails = prospectEmails.sort();
+
+      const prospectsMatch =
+        cachedProspectEmails.length === currentProspectEmails.length &&
+        cachedProspectEmails.every((email, i) => email === currentProspectEmails[i]);
+
+      const isWithinSevenDays =
+        new Date(recentMeetingsWithSameProspects.researchBrief.generatedAt) > sevenDaysAgo;
+
+      if (prospectsMatch && isWithinSevenDays) {
+        return {
+          hasCachedResearch: true,
+          cachedBriefId: recentMeetingsWithSameProspects.researchBrief.id,
+        };
+      }
+
+      return { hasCachedResearch: false, cachedBriefId: null };
+    });
+
+    // If cached research exists, reuse it
+    if (cachedResearch.hasCachedResearch && cachedResearch.cachedBriefId && type === 'calendar' && meetingId) {
+      await step.run('reuse-cached-research', async () => {
+        await db.update(meetings)
+          .set({
+            researchStatus: 'ready',
+            researchBriefId: cachedResearch.cachedBriefId,
+            updatedAt: new Date(),
+          })
+          .where(eq(meetings.id, meetingId));
+      });
+
+      return {
+        briefId: cachedResearch.cachedBriefId,
+        cached: true,
+        message: 'Reused cached research from within 7 days',
+      };
+    }
 
     // Step 1: Update status to generating
     await step.run('update-status-generating', async () => {
