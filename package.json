@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "NODE_ENV=production next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . --max-warnings 50",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest watch",
@@ -19,8 +19,10 @@
     "db:seed": "tsx lib/db/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@auth/drizzle-adapter": "^1.11.1",
     "@neondatabase/serverless": "^1.0.2",
+    "@react-pdf/renderer": "^4.3.1",
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
