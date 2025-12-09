@@ -142,23 +142,23 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 ### Implementation for User Story 3
 
-- [ ] T060 [P] [US3] Create SetupWizard container component in components/campaign/SetupWizard.tsx
-- [ ] T061 [P] [US3] Create CalendarSelector component (Step 1) in components/campaign/CalendarSelector.tsx
-- [ ] T062 [P] [US3] Create CompanyForm component (Step 2) in components/campaign/CompanyForm.tsx
-- [ ] T063 [P] [US3] Create OfferingForm component (Step 3) in components/campaign/OfferingForm.tsx
-- [ ] T064 [P] [US3] Create ReviewActivate component (Step 4) in components/campaign/ReviewActivate.tsx
-- [ ] T065 [US3] Create Google Calendar service for fetching calendars in lib/services/google-calendar.ts
-- [ ] T066 [US3] Create Google Calendar webhook subscription logic in lib/services/google-calendar.ts
-- [ ] T067 [US3] Implement POST /api/campaigns endpoint in app/api/campaigns/route.ts
-- [ ] T068 [US3] Implement GET /api/campaigns endpoint in app/api/campaigns/route.ts
-- [ ] T069 [US3] Implement GET /api/campaigns/[id] endpoint in app/api/campaigns/[id]/route.ts
-- [ ] T070 [US3] Implement PATCH /api/campaigns/[id] endpoint in app/api/campaigns/[id]/route.ts
-- [ ] T071 [US3] Implement DELETE /api/campaigns/[id] endpoint in app/api/campaigns/[id]/route.ts
-- [ ] T072 [US3] Create new campaign page with wizard in app/(dashboard)/settings/new/page.tsx
-- [ ] T073 [US3] Create campaign settings list page in app/(dashboard)/settings/page.tsx
-- [ ] T074 [US3] Create campaign edit page in app/(dashboard)/settings/[id]/edit/page.tsx
-- [ ] T075 [US3] Add webhook verification step before marking campaign active
-- [ ] T076 [US3] Create login page with Google OAuth in app/(auth)/login/page.tsx
+- [X] T060 [P] [US3] Create SetupWizard container component in components/campaign/SetupWizard.tsx
+- [X] T061 [P] [US3] Create CalendarSelector component (Step 1) in components/campaign/CalendarSelector.tsx
+- [X] T062 [P] [US3] Create CompanyForm component (Step 2) in components/campaign/CompanyForm.tsx
+- [X] T063 [P] [US3] Create OfferingForm component (Step 3) in components/campaign/OfferingForm.tsx
+- [X] T064 [P] [US3] Create ReviewActivate component (Step 4) in components/campaign/ReviewActivate.tsx
+- [X] T065 [US3] Create Google Calendar service for fetching calendars in lib/services/google-calendar.ts
+- [X] T066 [US3] Create Google Calendar webhook subscription logic in lib/services/google-calendar.ts
+- [X] T067 [US3] Implement POST /api/campaigns endpoint in app/api/campaigns/route.ts
+- [X] T068 [US3] Implement GET /api/campaigns endpoint in app/api/campaigns/route.ts
+- [X] T069 [US3] Implement GET /api/campaigns/[id] endpoint in app/api/campaigns/[id]/route.ts
+- [X] T070 [US3] Implement PATCH /api/campaigns/[id] endpoint in app/api/campaigns/[id]/route.ts
+- [X] T071 [US3] Implement DELETE /api/campaigns/[id] endpoint in app/api/campaigns/[id]/route.ts
+- [X] T072 [US3] Create new campaign page with wizard in app/(dashboard)/settings/new/page.tsx
+- [X] T073 [US3] Create campaign settings list page in app/(dashboard)/settings/page.tsx
+- [X] T074 [US3] Create campaign edit page in app/(dashboard)/settings/[id]/edit/page.tsx
+- [X] T075 [US3] Add webhook verification step before marking campaign active
+- [X] T076 [US3] Create login page with Google OAuth in app/(auth)/login/page.tsx
 
 **Checkpoint**: User Story 3 complete - users can set up campaigns and connect calendars
 
