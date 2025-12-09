@@ -172,20 +172,20 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 ### Implementation for User Story 4
 
-- [ ] T077 [P] [US4] Create Perplexity API service in lib/services/perplexity.ts
-- [ ] T078 [P] [US4] Create Claude API service in lib/services/claude.ts
-- [ ] T079 [US4] Create research orchestration service in lib/services/research.ts
-- [ ] T080 [US4] Implement process-webhook Inngest function in lib/inngest/functions/process-webhook.ts
-- [ ] T081 [US4] Implement generate-research Inngest function in lib/inngest/functions/generate-research.ts
-- [ ] T082 [US4] Implement POST /api/webhooks/google-calendar endpoint in app/api/webhooks/google-calendar/route.ts
-- [ ] T083 [US4] Implement POST /api/research/trigger endpoint in app/api/research/trigger/route.ts
-- [ ] T084 [US4] Create PDF generation service in lib/services/pdf.ts
-- [ ] T085 [US4] Implement GET /api/research/briefs/[id]/pdf endpoint in app/api/research/briefs/[id]/pdf/route.ts
-- [ ] T086 [US4] Add PDF download button to research brief page
-- [ ] T087 [US4] Implement external attendee detection using company domain comparison
-- [ ] T088 [US4] Handle meeting reschedule without re-researching
-- [ ] T089 [US4] Handle new attendee added to existing meeting (trigger incremental research)
-- [ ] T090 [US4] Implement research caching for recurring meetings (7-day cache)
+- [X] T077 [P] [US4] Create Perplexity API service in lib/services/perplexity.ts
+- [X] T078 [P] [US4] Create Claude API service in lib/services/claude.ts
+- [X] T079 [US4] Create research orchestration service in lib/services/research.ts
+- [X] T080 [US4] Implement process-webhook Inngest function in lib/inngest/functions/process-webhook.ts
+- [X] T081 [US4] Implement generate-research Inngest function in lib/inngest/functions/generate-research.ts
+- [X] T082 [US4] Implement POST /api/webhooks/google-calendar endpoint in app/api/webhooks/google-calendar/route.ts
+- [X] T083 [US4] Implement POST /api/research/trigger endpoint in app/api/research/trigger/route.ts
+- [X] T084 [US4] Create PDF generation service in lib/services/pdf.ts
+- [X] T085 [US4] Implement GET /api/research/briefs/[id]/pdf endpoint in app/api/research/briefs/[id]/pdf/route.ts
+- [X] T086 [US4] Add PDF download button to research brief page
+- [X] T087 [US4] Implement external attendee detection using company domain comparison
+- [X] T088 [US4] Handle meeting reschedule without re-researching
+- [X] T089 [US4] Handle new attendee added to existing meeting (trigger incremental research)
+- [X] T090 [US4] Implement research caching for recurring meetings (7-day cache)
 
 **Checkpoint**: User Story 4 complete - automatic research generation and PDF export working
 

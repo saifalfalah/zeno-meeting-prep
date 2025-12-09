@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ResearchBriefPage, ResearchBriefPageProps } from "@/components/brief/ResearchBriefPage";
 import { Button } from "@/components/ui/Button";
+import { PDFDownloadButton } from "@/components/brief/PDFDownloadButton";
 
 export default function MeetingDetailPage() {
   const params = useParams();
@@ -11,6 +12,7 @@ export default function MeetingDetailPage() {
   const meetingId = params.id as string;
 
   const [briefData, setBriefData] = useState<ResearchBriefPageProps | null>(null);
+  const [briefId, setBriefId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +41,7 @@ export default function MeetingDetailPage() {
         const brief = await briefResponse.json();
 
         setBriefData(brief);
+        setBriefId(meeting.researchBriefId);
       } catch (err) {
         console.error("Error fetching brief:", err);
         setError(err instanceof Error ? err.message : "Failed to load research brief");
@@ -105,15 +108,14 @@ export default function MeetingDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      {/* Header with back button */}
+      {/* Header with back button and PDF download */}
       <div className="max-w-5xl mx-auto px-4 mb-6">
-        <Button
-          onClick={() => router.push("/")}
-          variant="outline"
-          className="mb-4"
-        >
-          ← Back to Dashboard
-        </Button>
+        <div className="flex items-center justify-between mb-4">
+          <Button onClick={() => router.push("/")} variant="outline">
+            ← Back to Dashboard
+          </Button>
+          {briefId && <PDFDownloadButton briefId={briefId} />}
+        </div>
         <h1 className="text-2xl font-bold text-gray-900">Research Brief</h1>
       </div>
 
