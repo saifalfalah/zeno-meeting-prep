@@ -199,14 +199,14 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 ### Implementation for User Story 5
 
-- [ ] T091 [P] [US5] Create ErrorDisplay component for failed research in components/brief/ErrorDisplay.tsx
-- [ ] T092 [US5] Implement retry logic with exponential backoff in generate-research function
-- [ ] T093 [US5] Track which step failed (prospect lookup, company lookup, brief generation) in research service
-- [ ] T094 [US5] Store failure reason in Meeting.researchFailureReason
-- [ ] T095 [US5] Display error detail page for failed meetings in app/(dashboard)/meetings/[id]/page.tsx
-- [ ] T096 [US5] Implement partial brief generation with LOW confidence when data limited
-- [ ] T097 [US5] Add manual retry button for failed research
-- [ ] T098 [US5] Implement send-research-notification Inngest function (optional email alerts) in lib/inngest/functions/send-notification.ts
+- [X] T091 [P] [US5] Create ErrorDisplay component for failed research in components/brief/ErrorDisplay.tsx
+- [X] T092 [US5] Implement retry logic with exponential backoff in generate-research function
+- [X] T093 [US5] Track which step failed (prospect lookup, company lookup, brief generation) in research service
+- [X] T094 [US5] Store failure reason in Meeting.researchFailureReason
+- [X] T095 [US5] Display error detail page for failed meetings in app/(dashboard)/meetings/[id]/page.tsx
+- [X] T096 [US5] Implement partial brief generation with LOW confidence when data limited
+- [X] T097 [US5] Add manual retry button for failed research
+- [X] T098 [US5] Implement send-research-notification Inngest function (optional email alerts) in lib/inngest/functions/send-notification.ts
 
 **Checkpoint**: User Story 5 complete - research errors displayed transparently with retry option
 
