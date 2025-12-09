@@ -242,19 +242,19 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 ### Implementation for User Story 7
 
-- [ ] T108 [P] [US7] Create AdHocForm component in components/adhoc/AdHocForm.tsx
-- [ ] T109 [P] [US7] Create AdHocList component in components/adhoc/AdHocList.tsx
-- [ ] T110 [US7] Implement POST /api/adhoc endpoint in app/api/adhoc/route.ts
-- [ ] T111 [US7] Implement GET /api/adhoc endpoint in app/api/adhoc/route.ts
-- [ ] T112 [US7] Implement GET /api/adhoc/[id] endpoint in app/api/adhoc/[id]/route.ts
-- [ ] T113 [US7] Implement DELETE /api/adhoc/[id] endpoint in app/api/adhoc/[id]/route.ts
-- [ ] T114 [US7] Create ad-hoc research list page in app/(dashboard)/ad-hoc/page.tsx
-- [ ] T115 [US7] Create ad-hoc new research form page in app/(dashboard)/ad-hoc/new/page.tsx
-- [ ] T116 [US7] Create ad-hoc brief view page in app/(dashboard)/ad-hoc/[id]/page.tsx
-- [ ] T117 [US7] Extend generate-research function to handle ad-hoc requests
-- [ ] T118 [US7] Handle partial information (company only, email only, name only)
-- [ ] T119 [US7] Infer company from email domain when only email provided
-- [ ] T120 [US7] Add delete functionality for ad-hoc briefs (calendar briefs cannot be deleted)
+- [X] T108 [P] [US7] Create AdHocForm component in components/adhoc/AdHocForm.tsx
+- [X] T109 [P] [US7] Create AdHocList component in components/adhoc/AdHocList.tsx
+- [X] T110 [US7] Implement POST /api/adhoc endpoint in app/api/adhoc/route.ts
+- [X] T111 [US7] Implement GET /api/adhoc endpoint in app/api/adhoc/route.ts
+- [X] T112 [US7] Implement GET /api/adhoc/[id] endpoint in app/api/adhoc/[id]/route.ts
+- [X] T113 [US7] Implement DELETE /api/adhoc/[id] endpoint in app/api/adhoc/[id]/route.ts
+- [X] T114 [US7] Create ad-hoc research list page in app/(dashboard)/ad-hoc/page.tsx
+- [X] T115 [US7] Create ad-hoc new research form page in app/(dashboard)/ad-hoc/new/page.tsx
+- [X] T116 [US7] Create ad-hoc brief view page in app/(dashboard)/ad-hoc/[id]/page.tsx
+- [X] T117 [US7] Extend generate-research function to handle ad-hoc requests
+- [X] T118 [US7] Handle partial information (company only, email only, name only)
+- [X] T119 [US7] Infer company from email domain when only email provided
+- [X] T120 [US7] Add delete functionality for ad-hoc briefs (calendar briefs cannot be deleted)
 
 **Checkpoint**: User Story 7 complete - ad-hoc research working with partial inputs
 

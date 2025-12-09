@@ -103,37 +103,42 @@ export async function POST(request: NextRequest) {
       keyPainPoints: JSON.stringify(validatedData.keyPainPoints),
     }).returning()
 
-    // Create webhook subscription
-    try {
-      const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/google-calendar`
+    // Create webhook subscription (skip in development)
+    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/google-calendar`
+    const isLocalhost = webhookUrl.includes('localhost') || webhookUrl.includes('127.0.0.1')
 
-      const subscription = await createWebhookSubscription(
-        validatedData.googleCalendarId,
-        webhookUrl,
-        session.access_token
-      )
+    if (!isLocalhost) {
+      try {
+        const subscription = await createWebhookSubscription(
+          validatedData.googleCalendarId,
+          webhookUrl,
+          session.access_token
+        )
 
-      // Store webhook subscription
-      await db.insert(webhookSubscriptions).values({
-        campaignId: campaign.id,
-        googleResourceId: subscription.resourceId,
-        googleChannelId: subscription.id,
-        expiresAt: new Date(parseInt(subscription.expiration)),
-        status: 'active',
-      })
-    } catch (webhookError) {
-      // Rollback campaign creation if webhook subscription fails
-      await db.delete(campaigns).where(eq(campaigns.id, campaign.id))
+        // Store webhook subscription
+        await db.insert(webhookSubscriptions).values({
+          campaignId: campaign.id,
+          googleResourceId: subscription.resourceId,
+          googleChannelId: subscription.id,
+          expiresAt: new Date(parseInt(subscription.expiration)),
+          status: 'active',
+        })
+      } catch (webhookError) {
+        // Rollback campaign creation if webhook subscription fails
+        await db.delete(campaigns).where(eq(campaigns.id, campaign.id))
 
-      console.error('Failed to create webhook subscription:', webhookError)
+        console.error('Failed to create webhook subscription:', webhookError)
 
-      return NextResponse.json(
-        {
-          error: 'Failed to create webhook subscription',
-          message: webhookError instanceof Error ? webhookError.message : 'Unknown error',
-        },
-        { status: 500 }
-      )
+        return NextResponse.json(
+          {
+            error: 'Failed to create webhook subscription',
+            message: webhookError instanceof Error ? webhookError.message : 'Unknown error',
+          },
+          { status: 500 }
+        )
+      }
+    } else {
+      console.warn('Skipping webhook creation in development mode (localhost)')
     }
 
     return NextResponse.json(
