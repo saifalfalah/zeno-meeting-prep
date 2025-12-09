@@ -53,11 +53,13 @@ export async function orchestrateResearch(input: {
   const prospectResearchPromises = prospects.map(async (prospect) => {
     try {
       const domain = prospect.companyDomain || extractDomainFromEmail(prospect.email);
-      return await researchProspect({
+      const result = await researchProspect({
         email: prospect.email,
         name: prospect.name,
         companyDomain: domain,
       });
+      // Always include the email in the result for matching back to DB records
+      return { ...result, email: prospect.email };
     } catch (error) {
       console.error(`Failed to research prospect ${prospect.email}:`, error);
       // Return partial data to continue with other prospects

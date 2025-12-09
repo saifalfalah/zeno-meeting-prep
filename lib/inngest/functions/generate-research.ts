@@ -259,10 +259,10 @@ export const generateResearch = inngest.createFunction(
 
       // Store prospect info for each researched prospect
       for (const prospectData of researchResult.prospectResearch) {
-        if (prospectData.name) {
-          // Find prospect by email
+        if (prospectData.email) {
+          // Find prospect by email (now correctly using email field)
           const prospect = await db.query.prospects.findFirst({
-            where: eq(prospects.email, prospectData.name), // This should match by email from the input
+            where: eq(prospects.email, prospectData.email),
           });
 
           if (prospect) {
@@ -274,7 +274,7 @@ export const generateResearch = inngest.createFunction(
               background: prospectData.background || null,
               reportsTo: null,
               teamSize: null,
-              recentActivity: null,
+              recentActivity: prospectData.recentActivity ? JSON.stringify(prospectData.recentActivity) : null,
             });
           }
         }

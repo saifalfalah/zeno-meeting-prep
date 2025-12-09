@@ -13,6 +13,7 @@ export interface CompanyResearchData {
 }
 
 export interface ProspectResearchData {
+  email: string; // Always include email to match back to prospect
   name?: string;
   title?: string;
   companyName?: string;
@@ -56,17 +57,21 @@ export async function researchCompany(
     throw new NonRetriableError('PERPLEXITY_API_KEY is not configured');
   }
 
-  const prompt = `Research the company "${companyDomain}". Provide the following information in JSON format:
-- name: Company name
+  const prompt = `Research the company at domain "${companyDomain}".
+
+IMPORTANT: You MUST visit the actual company website at ${companyDomain} and browse it thoroughly. Do not rely only on third-party sources.
+
+Provide the following information in JSON format:
+- name: Company name (from their website)
 - industry: Industry classification
 - employeeCount: Employee count range (e.g., "50-200")
 - revenue: Revenue range if available
 - fundingStage: Funding stage (e.g., "Series B")
 - headquarters: HQ location
-- website: Company website URL
+- website: Full company website URL
 - recentNews: Array of recent developments (last 90 days)
 
-Focus on factual, verified information. If information is not available, use null.
+Focus on factual, verified information from the company's actual website and recent news sources. If information is not available, use null.
 Return ONLY valid JSON, no additional text.`;
 
   const response = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -76,12 +81,12 @@ Return ONLY valid JSON, no additional text.`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'llama-3.1-sonar-large-128k-online',
+      model: 'sonar-pro',
       messages: [
         {
           role: 'system',
           content:
-            'You are a business research assistant. Provide factual, cited information in JSON format only.',
+            'You are a sales research assistant. Always browse the live web and visit company websites directly. Use multiple authoritative sources and include recent information. Provide factual, cited information in JSON format only.',
         },
         {
           role: 'user',
@@ -90,7 +95,11 @@ Return ONLY valid JSON, no additional text.`;
       ],
       temperature: 0.2,
       max_tokens: 2000,
-      search_context_size: 10,
+      search_mode: 'web',
+      search_context_size: 'high',
+      search_recency_filter: 'month',
+      search_domain_filter: [companyDomain, 'linkedin.com', 'crunchbase.com'],
+      return_related_questions: false,
     }),
   });
 
@@ -160,16 +169,20 @@ export async function researchProspect(prospect: {
     .filter(Boolean)
     .join(' ');
 
-  const prompt = `Research the person: ${identityInfo}. Provide the following information in JSON format:
+  const prompt = `Research the person: ${identityInfo}.
+
+IMPORTANT: Search for this person on LinkedIn and other professional networks. Find their actual profile and recent activity.
+
+Provide the following information in JSON format:
 - name: Full name
 - title: Current job title
 - companyName: Current company name
 - location: Geographic location
-- background: Brief professional background summary
-- recentActivity: Array of recent professional activities (LinkedIn posts, speaking engagements, etc.)
+- background: Brief professional background summary (2-3 sentences)
+- recentActivity: Array of recent professional activities (LinkedIn posts, speaking engagements, articles, etc. from last 3 months)
 - linkedinUrl: LinkedIn profile URL if available
 
-Focus on professional information only. If information is not available, use null.
+Focus on professional information only from authoritative sources. If information is not available, use null.
 Return ONLY valid JSON, no additional text.`;
 
   const response = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -179,12 +192,12 @@ Return ONLY valid JSON, no additional text.`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'llama-3.1-sonar-large-128k-online',
+      model: 'sonar-pro',
       messages: [
         {
           role: 'system',
           content:
-            'You are a professional research assistant. Provide factual information about business professionals in JSON format only.',
+            'You are a professional research assistant. Always browse the live web and search LinkedIn, company websites, and professional networks directly. Provide factual information about business professionals in JSON format only.',
         },
         {
           role: 'user',
@@ -193,7 +206,11 @@ Return ONLY valid JSON, no additional text.`;
       ],
       temperature: 0.2,
       max_tokens: 1500,
-      search_context_size: 10,
+      search_mode: 'web',
+      search_context_size: 'high',
+      search_recency_filter: 'month',
+      search_domain_filter: ['linkedin.com', 'twitter.com', 'x.com'],
+      return_related_questions: false,
     }),
   });
 
