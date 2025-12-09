@@ -4,7 +4,7 @@ import { getResearchBriefById } from "@/lib/db/queries/briefs";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Fetch research brief with related data
     const brief = await getResearchBriefById(id);
