@@ -8,6 +8,7 @@ import { ViewToggle, CalendarView } from "@/components/calendar/ViewToggle";
 import { CalendarNavigation } from "@/components/calendar/CalendarNavigation";
 import { CampaignFilter, Campaign } from "@/components/calendar/CampaignFilter";
 import type { Meeting } from "@/components/calendar/DailyView";
+import { DailyViewSkeleton, WeeklyViewSkeleton, MonthlyViewSkeleton } from "@/components/ui/Skeleton";
 
 export default function DashboardPage() {
   const [currentView, setCurrentView] = useState<CalendarView>("weekly");
@@ -203,11 +204,13 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Loading State */}
+        {/* Loading State with Skeleton */}
         {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-          </div>
+          <>
+            {currentView === "daily" && <DailyViewSkeleton />}
+            {currentView === "weekly" && <WeeklyViewSkeleton />}
+            {currentView === "monthly" && <MonthlyViewSkeleton />}
+          </>
         )}
 
         {/* Calendar Views */}

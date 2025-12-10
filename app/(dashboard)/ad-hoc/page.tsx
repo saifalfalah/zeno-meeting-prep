@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { AdHocList, type AdHocRequest } from '@/components/adhoc/AdHocList'
+import { AdHocListSkeleton } from '@/components/ui/Skeleton'
 
 export default function AdHocResearchPage() {
   const [requests, setRequests] = useState<AdHocRequest[]>([])
@@ -104,9 +105,7 @@ export default function AdHocResearchPage() {
       )}
 
       {isLoading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <AdHocListSkeleton />
       ) : (
         <AdHocList requests={requests} onDelete={handleDelete} isDeleting={deletingId} />
       )}
