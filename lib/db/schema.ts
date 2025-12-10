@@ -159,6 +159,7 @@ export const adHocResearchRequests = pgTable("adhoc_research_requests", {
   prospectName: varchar("prospect_name", { length: 255 }),
   companyName: varchar("company_name", { length: 255 }),
   email: varchar("email", { length: 255 }),
+  website: varchar("website", { length: 500 }),
   status: adHocStatusEnum("status").default("pending").notNull(),
   researchBriefId: uuid("research_brief_id"),
   failureReason: text("failure_reason"),

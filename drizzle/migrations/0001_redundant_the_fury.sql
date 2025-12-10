@@ -1,0 +1,1 @@
+ALTER TABLE "adhoc_research_requests" ADD COLUMN "website" varchar(500);

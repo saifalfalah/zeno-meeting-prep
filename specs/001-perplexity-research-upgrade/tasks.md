@@ -30,11 +30,11 @@ Project structure follows Next.js 15 App Router conventions:
 
 **Purpose**: Database schema changes and type definitions
 
-- [ ] T001 Create database migration file in drizzle/migrations/0XXX_add_website_to_adhoc.sql to add website VARCHAR(500) column to adhoc_research_requests table
-- [ ] T002 Run database migration using npx drizzle-kit push:pg to apply schema changes
-- [ ] T003 Update lib/db/schema.ts to add website: varchar("website", { length: 500 }) to adHocResearchRequests table definition
-- [ ] T004 [P] Install tldts library for domain extraction using npm install tldts
-- [ ] T005 [P] Verify schema change by running psql command to check adhoc_research_requests table structure
+- [X] T001 Create database migration file in drizzle/migrations/0XXX_add_website_to_adhoc.sql to add website VARCHAR(500) column to adhoc_research_requests table
+- [X] T002 Run database migration using npx drizzle-kit push:pg to apply schema changes
+- [X] T003 Update lib/db/schema.ts to add website: varchar("website", { length: 500 }) to adHocResearchRequests table definition
+- [X] T004 [P] Install tldts library for domain extraction using npm install tldts
+- [X] T005 [P] Verify schema change by running psql command to check adhoc_research_requests table structure
 
 **Checkpoint**: Database schema updated, all dependencies installed
 
