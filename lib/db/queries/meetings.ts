@@ -1,6 +1,6 @@
-import { eq, and, desc, gte, lte, asc } from "drizzle-orm";
+import { eq, and, gte, lte, asc } from "drizzle-orm";
 import { db } from "../client";
-import { meetings, type researchStatusEnum, type meetingStatusEnum } from "../schema";
+import { meetings, type researchStatusEnum } from "../schema";
 
 export type Meeting = typeof meetings.$inferSelect;
 export type NewMeeting = typeof meetings.$inferInsert;

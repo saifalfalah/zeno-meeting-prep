@@ -6,6 +6,7 @@ import { ResearchBriefPage, ResearchBriefPageProps } from "@/components/brief/Re
 import { Button } from "@/components/ui/Button";
 import { PDFDownloadButton } from "@/components/brief/PDFDownloadButton";
 import { ErrorDisplay } from "@/components/brief/ErrorDisplay";
+import { ResearchBriefSkeleton } from "@/components/ui/Skeleton";
 
 export default function MeetingDetailPage() {
   const params = useParams();
@@ -72,11 +73,13 @@ export default function MeetingDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600">Loading research brief...</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-5xl mx-auto px-4 mb-6">
+          <Button onClick={() => router.push("/")} variant="outline">
+            ← Back to Dashboard
+          </Button>
         </div>
+        <ResearchBriefSkeleton />
       </div>
     );
   }
@@ -85,8 +88,11 @@ export default function MeetingDetailPage() {
   if (researchFailed) {
     const handleRetry = async () => {
       try {
+        // Optimistic update: immediately show loading state
+        setResearchFailed(false);
         setLoading(true);
         setError(null);
+
         const response = await fetch('/api/research/trigger', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -97,12 +103,16 @@ export default function MeetingDetailPage() {
           throw new Error('Failed to trigger research retry');
         }
 
-        // Refresh the page to show new status
-        window.location.reload();
+        // Poll for updated status
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } catch (err) {
         console.error('Error retrying research:', err);
-        setError(err instanceof Error ? err.message : 'Failed to retry research');
+        // Rollback on error
+        setResearchFailed(true);
         setLoading(false);
+        setError(err instanceof Error ? err.message : 'Failed to retry research');
       }
     };
 
