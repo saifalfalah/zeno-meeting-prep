@@ -5,6 +5,16 @@
 **Status**: Draft
 **Input**: User description: "Upgrade Perplexity research to use sonar-pro model with proper web search configuration for better research quality in ad-hoc and webhook features"
 
+## Clarifications
+
+### Session 2025-12-10
+
+- Q: When Perplexity API rate limits are hit during multi-pass research (3 API calls per prospect), how should the system respond? → A: Complete available research passes and mark the brief as "partial results" due to rate limiting
+- Q: What information should be logged when research operations execute, to enable debugging of web search quality issues and API failures in production? → A: Log API call parameters (model, domain filter, temperature), response metadata (token count, sources), timing, and any errors or partial results
+- Q: When a user provides both an email address and an explicit website URL, but they point to different companies, how should the system resolve this conflict? → A: Prioritize the explicit website URL since it's often the marketing website with the most information, but if information is not available on the explicit website, also research the email domain as a fallback source
+- Q: When the search_domain_filter is too restrictive and returns no results or very minimal results, how should the system respond? → A: Automatically retry the research pass without the domain filter and log that a fallback occurred
+- Q: Success criteria SC-008 states research should remain under 45 seconds. What should happen if research execution exceeds this threshold? → A: 45 seconds is a performance benchmark/target, but it's acceptable to exceed it as long as total execution doesn't exceed 3-5 minutes hard maximum
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Improved Company Research Quality (Priority: P1)
@@ -75,11 +85,11 @@ When calendar events trigger automatic research via webhooks, the system should 
 
 - What happens when a provided website URL is invalid or unreachable (404, DNS failure)?
 - How does the system handle companies with multiple domains or redirect chains (e.g., company.com → www.company.com)?
-- What happens when Perplexity API rate limits are hit during research?
+- **Rate Limiting**: When Perplexity API rate limits are hit during multi-pass research, the system completes whatever research passes succeeded and marks the brief as "partial results" with a note about rate limiting, rather than failing entirely
 - How does the system behave when a company website has no useful content (parking page, under construction)?
-- What happens if both email domain and explicit website field are provided but they point to different companies?
+- **Conflicting Domains**: When both email domain and explicit website are provided but point to different companies (e.g., email @companyA.com, website companyB.com), the system prioritizes the explicit website as the primary research target, but includes the email domain as a fallback source if the explicit website yields insufficient information
 - How does the system handle very new companies or individuals with minimal online presence?
-- What happens when search_domain_filter is too restrictive and returns no results?
+- **Restrictive Domain Filter**: When search_domain_filter returns no results or very minimal results (e.g., company website has little content), the system automatically retries the research pass without the domain filter to ensure useful results are returned, and logs the fallback event for monitoring
 - How does the system handle non-English company websites?
 
 ## Requirements *(mandatory)*
@@ -92,7 +102,7 @@ When calendar events trigger automatic research via webhooks, the system should 
 - **FR-004**: System MUST perform multiple targeted research passes per prospect: one pass focused on company website (with domain filter), one pass for company news/context (without domain filter), and one pass for prospect background
 - **FR-005**: System MUST add a "Company Website" field to the AdHocForm component as an optional input field
 - **FR-006**: System MUST validate website URLs provided in the ad-hoc form, accepting common formats (http://, https://, or bare domain) and normalizing them to proper URLs
-- **FR-007**: System MUST prioritize explicitly provided website URLs over domains extracted from email addresses when both are available
+- **FR-007**: System MUST prioritize explicitly provided website URLs over domains extracted from email addresses when both are available, using the explicit website as the primary research target and the email domain as a fallback source if the explicit website yields insufficient information
 - **FR-008**: System MUST update form validation to accept submissions with only website field populated (removing requirement for email/name/company when website is provided)
 - **FR-009**: System MUST use temperature between 0.1-0.3 for all Perplexity research calls to reduce hallucinations
 - **FR-010**: System MUST use max_tokens of 2000-3000 for research calls to allow comprehensive responses
@@ -101,6 +111,10 @@ When calendar events trigger automatic research via webhooks, the system should 
 - **FR-013**: System MUST extract and normalize company domains from various URL formats (e.g., "https://www.company.com/about" → "company.com")
 - **FR-014**: System MUST update AdHocFormData interface to include optional website field
 - **FR-015**: System MUST pass website information through the API endpoint to the research orchestration layer
+- **FR-016**: System MUST handle Perplexity API rate limit errors by completing available research passes and marking the research brief with a "partial results" indicator rather than failing the entire request
+- **FR-017**: System MUST log comprehensive research operation details including API call parameters (model, domain filter, temperature), response metadata (token count, sources cited), execution timing per research pass, and any errors or partial result conditions
+- **FR-018**: System MUST detect when search_domain_filter returns insufficient results (no results or very minimal content) and automatically retry the research pass without the domain filter, logging the fallback occurrence
+- **FR-019**: System MUST implement a hard timeout of 5 minutes for research operations to prevent indefinite hangs, terminating the operation and returning partial results if the timeout is exceeded
 
 ### Key Entities
 
@@ -120,7 +134,7 @@ When calendar events trigger automatic research via webhooks, the system should 
 - **SC-005**: Research briefs include citations or references to multiple sources (minimum 2-3 sources per brief) indicating multi-source web research occurred
 - **SC-006**: Webhook-triggered research produces results with equivalent quality to ad-hoc research (measured by comparing research briefs for the same company through both pathways)
 - **SC-007**: System gracefully handles invalid or unreachable websites by falling back to broader search without failing the entire research request
-- **SC-008**: Research execution time remains under 45 seconds for standard ad-hoc requests despite additional research passes
+- **SC-008**: Research execution time remains under 45 seconds for standard ad-hoc requests as a performance target (not a hard limit), with a hard maximum timeout of 3-5 minutes to prevent indefinite hangs
 
 ## Assumptions *(if any)*
 
