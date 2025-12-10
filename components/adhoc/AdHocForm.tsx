@@ -6,6 +6,7 @@ export interface AdHocFormData {
   prospectName?: string
   companyName?: string
   email?: string
+  website?: string
   campaignId: string
 }
 

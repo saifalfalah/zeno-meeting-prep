@@ -9,7 +9,114 @@ export interface CompanyResearchData {
   headquarters?: string;
   website?: string;
   recentNews?: string[];
+  sources?: ResearchSource[];
+  metadata?: ResearchMetadata;
   [key: string]: unknown;
+}
+
+export interface ResearchSource {
+  url: string;
+  title?: string;
+  snippet?: string;
+}
+
+export interface ResearchMetadata {
+  model: string;
+  totalTokens?: number;
+  durationMs?: number;
+  timestamp: string;
+  usedDomainFilter?: boolean;
+  fallbackOccurred?: boolean;
+}
+
+export interface PerplexityResearchConfig {
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  timeout: number;
+  systemMessage: string;
+}
+
+export interface ResearchPass {
+  passNumber: number;
+  name: string;
+  prompt: string;
+  searchDomainFilter?: string;
+  result?: string;
+  sources?: ResearchSource[];
+  metadata?: ResearchMetadata;
+  error?: string;
+}
+
+export interface ResearchOperationLog {
+  operation: string;
+  startTime: string;
+  endTime?: string;
+  durationMs?: number;
+  status: 'success' | 'failed' | 'partial';
+  details?: Record<string, unknown>;
+}
+
+// Perplexity API Configuration Constants
+export const PERPLEXITY_CONFIG = {
+  MODEL: 'sonar-pro',
+  TEMPERATURE: {
+    MIN: 0.1,
+    MAX: 0.3,
+    DEFAULT: 0.2,
+  },
+  MAX_TOKENS: {
+    COMPANY_RESEARCH: 4000,
+    PROSPECT_RESEARCH: 3000,
+    DEFAULT: 2000,
+  },
+  TIMEOUT: {
+    PER_PASS: 60000, // 60 seconds
+    TOTAL_MULTI_PASS: 180000, // 3 minutes
+    HARD_MAX: 300000, // 5 minutes
+  },
+  SYSTEM_MESSAGE: {
+    WEB_BROWSING: 'You are a business research assistant. Browse the web to find factual, verified information. ALWAYS include citations and source URLs. Provide information in JSON format only.',
+    COMPANY_RESEARCH: 'You are a business research assistant specializing in company research. Focus on factual, verified information from official company sources. ALWAYS include citations and source URLs. Provide information in JSON format only.',
+    PROSPECT_RESEARCH: 'You are a professional research assistant specializing in researching business professionals. Focus on factual, publicly available professional information. ALWAYS include citations and source URLs. Provide information in JSON format only.',
+  },
+  RETRY: {
+    MAX_ATTEMPTS: 3,
+    INITIAL_DELAY_MS: 1000,
+    MAX_DELAY_MS: 10000,
+    BACKOFF_FACTOR: 2,
+  },
+} as const;
+
+// Custom Error Classes
+export class RateLimitError extends Error {
+  constructor(
+    message: string,
+    public retryAfter?: number
+  ) {
+    super(message);
+    this.name = 'RateLimitError';
+  }
+}
+
+export class TimeoutError extends Error {
+  constructor(
+    message: string,
+    public timeoutMs?: number
+  ) {
+    super(message);
+    this.name = 'TimeoutError';
+  }
+}
+
+export class InsufficientDataError extends Error {
+  constructor(
+    message: string,
+    public details?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = 'InsufficientDataError';
+  }
 }
 
 export interface ProspectResearchData {
@@ -20,6 +127,8 @@ export interface ProspectResearchData {
   background?: string;
   recentActivity?: string[];
   linkedinUrl?: string;
+  sources?: ResearchSource[];
+  metadata?: ResearchMetadata;
   [key: string]: unknown;
 }
 

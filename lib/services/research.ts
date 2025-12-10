@@ -23,6 +23,7 @@ export interface ProspectInput {
   email: string;
   name?: string;
   companyDomain?: string;
+  website?: string;
 }
 
 /**

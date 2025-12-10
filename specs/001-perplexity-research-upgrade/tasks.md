@@ -46,16 +46,16 @@ Project structure follows Next.js 15 App Router conventions:
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 [P] Create TypeScript interfaces in lib/services/perplexity.ts for PerplexityResearchConfig, ResearchPass, ResearchOperationLog, ResearchSource, ResearchMetadata
-- [ ] T007 [P] Add PERPLEXITY_CONFIG constants in lib/services/perplexity.ts with model name (sonar-pro), temperature defaults, max_tokens, timeouts, system message
-- [ ] T008 [P] Create error classes in lib/services/perplexity.ts: RateLimitError, TimeoutError, InsufficientDataError
-- [ ] T009 [P] Implement URL validation function isValidUrl in lib/utils/url.ts using native URL API
-- [ ] T010 [P] Implement URL normalization function normalizeUrl in lib/utils/url.ts to ensure https:// protocol
-- [ ] T011 [P] Implement domain extraction function extractDomain in lib/utils/url.ts using tldts library
-- [ ] T012 [P] Implement exponential backoff retry function withRetry in lib/utils/retry.ts with jitter support
-- [ ] T013 [P] Implement timeout wrapper function withTimeout in lib/utils/timeout.ts using AbortController
-- [ ] T014 Update ProspectInput interface in lib/services/research.ts to add website?: string field
-- [ ] T015 Update AdHocFormData interface in components/adhoc/AdHocForm.tsx to add website?: string field
+- [X] T006 [P] Create TypeScript interfaces in lib/services/perplexity.ts for PerplexityResearchConfig, ResearchPass, ResearchOperationLog, ResearchSource, ResearchMetadata
+- [X] T007 [P] Add PERPLEXITY_CONFIG constants in lib/services/perplexity.ts with model name (sonar-pro), temperature defaults, max_tokens, timeouts, system message
+- [X] T008 [P] Create error classes in lib/services/perplexity.ts: RateLimitError, TimeoutError, InsufficientDataError
+- [X] T009 [P] Implement URL validation function isValidUrl in lib/utils/url.ts using native URL API
+- [X] T010 [P] Implement URL normalization function normalizeUrl in lib/utils/url.ts to ensure https:// protocol
+- [X] T011 [P] Implement domain extraction function extractDomain in lib/utils/url.ts using tldts library
+- [X] T012 [P] Implement exponential backoff retry function withRetry in lib/utils/retry.ts with jitter support
+- [X] T013 [P] Implement timeout wrapper function withTimeout in lib/utils/timeout.ts using AbortController
+- [X] T014 Update ProspectInput interface in lib/services/research.ts to add website?: string field
+- [X] T015 Update AdHocFormData interface in components/adhoc/AdHocForm.tsx to add website?: string field
 
 **Checkpoint**: Foundation ready - all core utilities and types available for user story implementation
 
