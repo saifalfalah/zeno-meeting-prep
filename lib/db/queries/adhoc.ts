@@ -1,4 +1,4 @@
-import { eq, and, desc } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "../client";
 import { adHocResearchRequests, type adHocStatusEnum } from "../schema";
 

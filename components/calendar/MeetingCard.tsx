@@ -60,19 +60,42 @@ export function MeetingCard({
 
   const relativeTime = getRelativeTime(startTime);
 
+  const getStatusDescription = () => {
+    switch (researchStatus) {
+      case 'ready':
+        return 'Research brief available';
+      case 'generating':
+        return 'Research in progress';
+      case 'pending':
+        return 'Research pending';
+      case 'failed':
+        return 'Research failed';
+      default:
+        return 'No research';
+    }
+  };
+
   return (
-    <Link href={`/meetings/${id}`} className="block">
+    <Link
+      href={`/meetings/${id}`}
+      className="block"
+      aria-label={`${title}, ${formatTime(startTime)} to ${formatTime(endTime)}, ${getStatusDescription()}`}
+    >
       <Card
         className={`
           transition-all hover:shadow-md hover:border-gray-300 cursor-pointer
           ${className}
         `}
+        role="article"
+        aria-labelledby={`meeting-title-${id}`}
       >
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <h3 className="font-semibold text-gray-900 truncate">{title}</h3>
+                <h3 id={`meeting-title-${id}`} className="font-semibold text-gray-900 truncate">
+                  {title}
+                </h3>
                 {relativeTime && (
                   <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
                     {relativeTime}
@@ -99,6 +122,7 @@ export function MeetingCard({
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -108,6 +132,7 @@ export function MeetingCard({
                     />
                   </svg>
                   <span>
+                    <span className="sr-only">Time: </span>
                     {formatTime(startTime)} - {formatTime(endTime)}
                   </span>
                 </div>
@@ -119,6 +144,7 @@ export function MeetingCard({
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -133,7 +159,10 @@ export function MeetingCard({
                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    <span className="truncate">{meetLink ? "Video call" : location}</span>
+                    <span className="truncate">
+                      <span className="sr-only">Location: </span>
+                      {meetLink ? "Video call" : location}
+                    </span>
                   </div>
                 )}
               </div>
