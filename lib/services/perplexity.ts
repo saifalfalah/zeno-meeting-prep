@@ -1,4 +1,6 @@
 import { RetryAfterError, NonRetriableError } from 'inngest';
+import { withRetry } from '../utils/retry';
+import { withTimeout } from '../utils/timeout';
 
 export interface CompanyResearchData {
   name?: string;
@@ -149,20 +151,52 @@ interface PerplexityResponse {
   };
 }
 
+export interface ResearchCompanyOptions {
+  searchDomainFilter?: string;
+  includeDomainFallback?: boolean;
+  temperature?: number;
+  maxTokens?: number;
+  timeout?: number;
+}
+
 /**
- * Research a company using Perplexity API
+ * Research a company using Perplexity API with sonar-pro model
  * @param companyDomain - The company domain (e.g., "acmecorp.com")
- * @returns Structured company research data
+ * @param options - Research options including domain filter, temperature, etc.
+ * @returns Structured company research data with sources and metadata
  * @throws RetryAfterError when rate limited (429)
  * @throws NonRetriableError for 4xx errors
  * @throws Error for 5xx errors (retryable)
  */
 export async function researchCompany(
-  companyDomain: string
+  companyDomain: string,
+  options: ResearchCompanyOptions = {}
 ): Promise<CompanyResearchData> {
   const apiKey = process.env.PERPLEXITY_API_KEY;
   if (!apiKey) {
     throw new NonRetriableError('PERPLEXITY_API_KEY is not configured');
+  }
+
+  // Extract options with defaults
+  const {
+    searchDomainFilter,
+    includeDomainFallback = false,
+    temperature = PERPLEXITY_CONFIG.TEMPERATURE.DEFAULT,
+    maxTokens = PERPLEXITY_CONFIG.MAX_TOKENS.COMPANY_RESEARCH,
+    timeout = PERPLEXITY_CONFIG.TIMEOUT.PER_PASS,
+  } = options;
+
+  // T025: Log operation start
+  const startTime = Date.now();
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[Perplexity] Starting company research', {
+      companyDomain,
+      searchDomainFilter,
+      includeDomainFallback,
+      temperature,
+      maxTokens,
+      timeout,
+    });
   }
 
   const prompt = `Research the company "${companyDomain}". Provide the following information in JSON format:
@@ -178,69 +212,222 @@ export async function researchCompany(
 Focus on factual, verified information. If information is not available, use null.
 Return ONLY valid JSON, no additional text.`;
 
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'llama-3.1-sonar-large-128k-online',
+  // Helper function to check if data is insufficient
+  const isInsufficientData = (data: CompanyResearchData): boolean => {
+    const criticalFields = [data.name, data.industry];
+    const filledFields = criticalFields.filter(
+      (field) => field !== null && field !== undefined && field !== ''
+    );
+    return filledFields.length < 2;
+  };
+
+  // T020-T024: Make API call with sonar-pro model and optional domain filter
+  const makeApiCall = async (
+    useDomainFilter: boolean
+  ): Promise<{ data: CompanyResearchData; apiResponse: PerplexityResponse }> => {
+    const requestBody: Record<string, unknown> = {
+      model: PERPLEXITY_CONFIG.MODEL, // T020: Use sonar-pro
       messages: [
         {
           role: 'system',
-          content:
-            'You are a business research assistant. Provide factual, cited information in JSON format only.',
+          content: PERPLEXITY_CONFIG.SYSTEM_MESSAGE.COMPANY_RESEARCH, // T021: Explicit web browsing system message
         },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      temperature: 0.2,
-      max_tokens: 2000,
+      temperature,
+      max_tokens: maxTokens,
       search_context_size: 10,
-    }),
-  });
+    };
 
-  // Handle rate limiting
-  if (response.status === 429) {
-    const retryAfter = response.headers.get('retry-after') || '60';
-    throw new RetryAfterError(
-      'Rate limited by Perplexity API',
-      `${retryAfter}s`
-    );
-  }
+    // T023: Add search_domain_filter if provided and useDomainFilter is true
+    if (useDomainFilter && searchDomainFilter) {
+      requestBody.search_domain_filter = [searchDomainFilter];
+    }
 
-  // Handle client errors (don't retry)
-  if (response.status >= 400 && response.status < 500) {
-    const error = await response.json();
-    throw new NonRetriableError(
-      `Perplexity API error: ${error.error || 'Invalid request'}`
-    );
-  }
+    // T025: Log API call parameters
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Perplexity] API call parameters', {
+        model: requestBody.model,
+        temperature: requestBody.temperature,
+        max_tokens: requestBody.max_tokens,
+        search_domain_filter: requestBody.search_domain_filter,
+      });
+    }
 
-  // Handle server errors (retry)
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`Perplexity API error: ${error.error || 'Server error'}`);
-  }
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
 
-  const data: PerplexityResponse = await response.json();
-  const content = data.choices[0].message.content;
+    // Handle rate limiting
+    if (response.status === 429) {
+      const retryAfter = response.headers.get('retry-after') || '60';
+      throw new RetryAfterError(
+        'Rate limited by Perplexity API',
+        `${retryAfter}s`
+      );
+    }
+
+    // Handle client errors (don't retry)
+    if (response.status >= 400 && response.status < 500) {
+      const error = await response.json();
+      throw new NonRetriableError(
+        `Perplexity API error: ${error.error || 'Invalid request'}`
+      );
+    }
+
+    // Handle server errors (retry)
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`Perplexity API error: ${error.error || 'Server error'}`);
+    }
+
+    const apiResponse: PerplexityResponse = await response.json();
+    const content = apiResponse.choices[0].message.content;
+
+    try {
+      // Try to parse JSON response
+      const parsed = JSON.parse(content);
+      return { data: parsed as CompanyResearchData, apiResponse };
+    } catch {
+      // If not valid JSON, try to extract JSON from markdown code blocks
+      const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
+      if (jsonMatch) {
+        return {
+          data: JSON.parse(jsonMatch[1]) as CompanyResearchData,
+          apiResponse,
+        };
+      }
+      throw new Error('Failed to parse Perplexity response as JSON');
+    }
+  };
+
+  // T024: Implement domain filter fallback logic
+  // T029: Wrap with retry logic for rate limits
+  // T030: Wrap with timeout control
+  let result: CompanyResearchData;
+  let apiResponse: PerplexityResponse;
+  let fallbackOccurred = false;
 
   try {
-    // Try to parse JSON response
-    const parsed = JSON.parse(content);
-    return parsed as CompanyResearchData;
-  } catch (_e) {
-    // If not valid JSON, try to extract JSON from markdown code blocks
-    const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[1]) as CompanyResearchData;
-    }
-    throw new Error('Failed to parse Perplexity response as JSON');
+    // Wrap the entire operation with timeout
+    const executeWithFallback = async () => {
+      // First attempt with domain filter if provided - wrapped with retry
+      const firstAttempt = await withRetry(
+        () => makeApiCall(true),
+        {
+          maxAttempts: PERPLEXITY_CONFIG.RETRY.MAX_ATTEMPTS,
+          initialDelayMs: PERPLEXITY_CONFIG.RETRY.INITIAL_DELAY_MS,
+          maxDelayMs: PERPLEXITY_CONFIG.RETRY.MAX_DELAY_MS,
+          backoffFactor: PERPLEXITY_CONFIG.RETRY.BACKOFF_FACTOR,
+          shouldRetry: (error) => {
+            // Retry on rate limits and server errors, but not on client errors
+            if (error instanceof RetryAfterError) return true;
+            if (error instanceof NonRetriableError) return false;
+            if (error instanceof Error) {
+              // Retry on generic errors (likely 5xx)
+              return !error.message.includes('Invalid request');
+            }
+            return false;
+          },
+        }
+      );
+
+      let finalResult = firstAttempt.data;
+      let finalResponse = firstAttempt.apiResponse;
+      let didFallback = false;
+
+      // Check if we should retry without domain filter
+      if (
+        searchDomainFilter &&
+        includeDomainFallback &&
+        isInsufficientData(finalResult)
+      ) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(
+            '[Perplexity] Insufficient data with domain filter, retrying without filter',
+            { result: finalResult }
+          );
+        }
+
+        const fallbackAttempt = await withRetry(
+          () => makeApiCall(false),
+          {
+            maxAttempts: PERPLEXITY_CONFIG.RETRY.MAX_ATTEMPTS,
+            initialDelayMs: PERPLEXITY_CONFIG.RETRY.INITIAL_DELAY_MS,
+            maxDelayMs: PERPLEXITY_CONFIG.RETRY.MAX_DELAY_MS,
+            backoffFactor: PERPLEXITY_CONFIG.RETRY.BACKOFF_FACTOR,
+            shouldRetry: (error) => {
+              if (error instanceof RetryAfterError) return true;
+              if (error instanceof NonRetriableError) return false;
+              if (error instanceof Error) {
+                return !error.message.includes('Invalid request');
+              }
+              return false;
+            },
+          }
+        );
+
+        finalResult = fallbackAttempt.data;
+        finalResponse = fallbackAttempt.apiResponse;
+        didFallback = true;
+      }
+
+      return { data: finalResult, apiResponse: finalResponse, fallbackOccurred: didFallback };
+    };
+
+    // Apply timeout wrapper
+    const { data, apiResponse: response, fallbackOccurred: didFallback } = await withTimeout(
+      executeWithFallback,
+      timeout,
+      `Company research timed out after ${timeout}ms`
+    );
+
+    result = data;
+    apiResponse = response;
+    fallbackOccurred = didFallback;
+  } catch (error) {
+    // T025: Log errors
+    console.error('[Perplexity] Company research failed', {
+      companyDomain,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      durationMs: Date.now() - startTime,
+    });
+    throw error;
   }
+
+  // Calculate duration
+  const durationMs = Date.now() - startTime;
+
+  // T025: Log response metadata
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[Perplexity] Company research completed', {
+      companyDomain,
+      durationMs,
+      totalTokens: apiResponse.usage.total_tokens,
+      fallbackOccurred,
+    });
+  }
+
+  // Add sources and metadata to result
+  result.sources = result.sources || [];
+  result.metadata = {
+    model: PERPLEXITY_CONFIG.MODEL,
+    totalTokens: apiResponse.usage.total_tokens,
+    durationMs,
+    timestamp: new Date().toISOString(),
+    usedDomainFilter: searchDomainFilter !== undefined && !fallbackOccurred,
+    fallbackOccurred,
+  };
+
+  return result;
 }
 
 /**
@@ -336,7 +523,7 @@ Return ONLY valid JSON, no additional text.`;
     // Try to parse JSON response
     const parsed = JSON.parse(content);
     return parsed as ProspectResearchData;
-  } catch (_e) {
+  } catch {
     // If not valid JSON, try to extract JSON from markdown code blocks
     const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/);
     if (jsonMatch) {

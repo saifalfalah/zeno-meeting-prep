@@ -71,24 +71,24 @@ Project structure follows Next.js 15 App Router conventions:
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T016 [P] [US1] Create contract test file __tests__/contract/perplexity.contract.test.ts to test CompanyResearchData structure includes sources and metadata fields
-- [ ] T017 [P] [US1] Add test in __tests__/unit/services/perplexity.test.ts to verify sonar-pro model is used in API calls
-- [ ] T018 [P] [US1] Add test in __tests__/unit/services/perplexity.test.ts to verify search_domain_filter parameter is passed correctly
-- [ ] T019 [P] [US1] Add test in __tests__/unit/services/perplexity.test.ts to verify domain filter fallback occurs when results are insufficient
+- [X] T016 [P] [US1] Create contract test file __tests__/contract/perplexity.contract.test.ts to test CompanyResearchData structure includes sources and metadata fields
+- [X] T017 [P] [US1] Add test in __tests__/unit/services/perplexity.test.ts to verify sonar-pro model is used in API calls
+- [X] T018 [P] [US1] Add test in __tests__/unit/services/perplexity.test.ts to verify search_domain_filter parameter is passed correctly
+- [X] T019 [P] [US1] Add test in __tests__/unit/services/perplexity.test.ts to verify domain filter fallback occurs when results are insufficient
 
 ### Implementation for User Story 1
 
-- [ ] T020 [US1] Update researchCompany function in lib/services/perplexity.ts to change model from llama-3.1-sonar-large-128k-online to sonar-pro
-- [ ] T021 [US1] Add explicit web browsing system message to researchCompany function in lib/services/perplexity.ts
-- [ ] T022 [US1] Update researchCompany function signature in lib/services/perplexity.ts to accept ResearchCompanyOptions including searchDomainFilter, includeDomainFallback, temperature, maxTokens, timeout
-- [ ] T023 [US1] Implement search_domain_filter parameter support in researchCompany function in lib/services/perplexity.ts
-- [ ] T024 [US1] Implement domain filter fallback logic in researchCompany function in lib/services/perplexity.ts to retry without filter if initial results insufficient
-- [ ] T025 [US1] Add comprehensive logging in researchCompany function in lib/services/perplexity.ts for API call parameters, response metadata, duration, errors
-- [ ] T026 [US1] Update researchCompany return type in lib/services/perplexity.ts to include sources: ResearchSource[] and metadata: ResearchMetadata fields
-- [ ] T027 [US1] Update temperature range to 0.1-0.3 (default 0.2) in researchCompany function in lib/services/perplexity.ts
-- [ ] T028 [US1] Update max_tokens to 4000 for company research in researchCompany function in lib/services/perplexity.ts
-- [ ] T029 [US1] Implement rate limit error handling with exponential backoff in researchCompany function in lib/services/perplexity.ts using withRetry utility
-- [ ] T030 [US1] Add 60-second timeout control using withTimeout utility in researchCompany function in lib/services/perplexity.ts
+- [X] T020 [US1] Update researchCompany function in lib/services/perplexity.ts to change model from llama-3.1-sonar-large-128k-online to sonar-pro
+- [X] T021 [US1] Add explicit web browsing system message to researchCompany function in lib/services/perplexity.ts
+- [X] T022 [US1] Update researchCompany function signature in lib/services/perplexity.ts to accept ResearchCompanyOptions including searchDomainFilter, includeDomainFallback, temperature, maxTokens, timeout
+- [X] T023 [US1] Implement search_domain_filter parameter support in researchCompany function in lib/services/perplexity.ts
+- [X] T024 [US1] Implement domain filter fallback logic in researchCompany function in lib/services/perplexity.ts to retry without filter if initial results insufficient
+- [X] T025 [US1] Add comprehensive logging in researchCompany function in lib/services/perplexity.ts for API call parameters, response metadata, duration, errors
+- [X] T026 [US1] Update researchCompany return type in lib/services/perplexity.ts to include sources: ResearchSource[] and metadata: ResearchMetadata fields
+- [X] T027 [US1] Update temperature range to 0.1-0.3 (default 0.2) in researchCompany function in lib/services/perplexity.ts
+- [X] T028 [US1] Update max_tokens to 4000 for company research in researchCompany function in lib/services/perplexity.ts
+- [X] T029 [US1] Implement rate limit error handling with exponential backoff in researchCompany function in lib/services/perplexity.ts using withRetry utility
+- [X] T030 [US1] Add 60-second timeout control using withTimeout utility in researchCompany function in lib/services/perplexity.ts
 
 **Checkpoint**: User Story 1 complete - company research uses sonar-pro with domain filtering and returns web-sourced results with citations
 
