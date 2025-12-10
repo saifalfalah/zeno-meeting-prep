@@ -79,9 +79,21 @@ export default function EditCampaignPage() {
     setIsSaving(true)
     setError(null)
 
-    try {
-      const validPainPoints = painPoints.filter((p) => p.trim().length > 0)
+    // Optimistic update: immediately update local state
+    const previousCampaign = campaign
+    const validPainPoints = painPoints.filter((p) => p.trim().length > 0)
+    setCampaign({
+      ...campaign!,
+      name,
+      status,
+      companyDescription,
+      offeringTitle,
+      offeringDescription,
+      targetCustomer,
+      keyPainPoints: validPainPoints,
+    })
 
+    try {
       const response = await fetch(`/api/campaigns/${campaignId}`, {
         method: 'PATCH',
         headers: {
@@ -105,6 +117,8 @@ export default function EditCampaignPage() {
 
       router.push('/settings')
     } catch (err) {
+      // Rollback on error
+      setCampaign(previousCampaign)
       setError(err instanceof Error ? err.message : 'Failed to save campaign')
     } finally {
       setIsSaving(false)
