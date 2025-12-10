@@ -134,27 +134,27 @@ Project structure follows Next.js 15 App Router conventions:
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T047 [P] [US3] Add contract test in __tests__/contract/perplexity.contract.test.ts to test MultiPassResearchResult structure
-- [ ] T048 [P] [US3] Add contract test in __tests__/contract/perplexity.contract.test.ts to test ProspectResearchData structure includes sources and metadata
-- [ ] T049 [P] [US3] Add test in __tests__/unit/services/perplexity.test.ts to verify performMultiPassResearch executes 3 passes sequentially
-- [ ] T050 [P] [US3] Add test in __tests__/unit/services/research.test.ts to test multi-pass research orchestration
-- [ ] T051 [P] [US3] Add test in __tests__/unit/services/research.test.ts to test partial result handling when passes fail
+- [X] T047 [P] [US3] Add contract test in __tests__/contract/perplexity.contract.test.ts to test MultiPassResearchResult structure
+- [X] T048 [P] [US3] Add contract test in __tests__/contract/perplexity.contract.test.ts to test ProspectResearchData structure includes sources and metadata
+- [X] T049 [P] [US3] Add test in __tests__/unit/services/perplexity.test.ts to verify performMultiPassResearch executes 3 passes sequentially
+- [X] T050 [P] [US3] Add test in __tests__/unit/services/research.test.ts to test multi-pass research orchestration
+- [X] T051 [P] [US3] Add test in __tests__/unit/services/research.test.ts to test partial result handling when passes fail
 
 ### Implementation for User Story 3
 
-- [ ] T052 [US3] Update researchProspect function in lib/services/perplexity.ts to use sonar-pro model, add system message, update return type to include sources and metadata
-- [ ] T053 [US3] Update researchProspect function in lib/services/perplexity.ts to accept ResearchProspectOptions with temperature, maxTokens, timeout
-- [ ] T054 [US3] Create performMultiPassResearch function in lib/services/perplexity.ts with signature accepting MultiPassResearchInput and MultiPassResearchOptions
-- [ ] T055 [US3] Implement Pass 1 (Company Website Focus) in performMultiPassResearch in lib/services/perplexity.ts with search_domain_filter using explicit website or email domain
-- [ ] T056 [US3] Implement Pass 2 (Company News & Context) in performMultiPassResearch in lib/services/perplexity.ts without domain filter for broader news search
-- [ ] T057 [US3] Implement Pass 3 (Prospect Background) in performMultiPassResearch in lib/services/perplexity.ts searching LinkedIn, company pages, and professional sources
-- [ ] T058 [US3] Add 60-second timeout per pass in performMultiPassResearch in lib/services/perplexity.ts using withTimeout utility
-- [ ] T059 [US3] Add 180-second total timeout in performMultiPassResearch in lib/services/perplexity.ts using withTimeout utility
-- [ ] T060 [US3] Implement graceful degradation in performMultiPassResearch in lib/services/perplexity.ts to complete available passes even if one fails
-- [ ] T061 [US3] Return isPartialData flag in performMultiPassResearch in lib/services/perplexity.ts when any pass fails
+- [X] T052 [US3] Update researchProspect function in lib/services/perplexity.ts to use sonar-pro model, add system message, update return type to include sources and metadata
+- [X] T053 [US3] Update researchProspect function in lib/services/perplexity.ts to accept ResearchProspectOptions with temperature, maxTokens, timeout
+- [X] T054 [US3] Create performMultiPassResearch function in lib/services/perplexity.ts with signature accepting MultiPassResearchInput and MultiPassResearchOptions
+- [X] T055 [US3] Implement Pass 1 (Company Website Focus) in performMultiPassResearch in lib/services/perplexity.ts with search_domain_filter using explicit website or email domain
+- [X] T056 [US3] Implement Pass 2 (Company News & Context) in performMultiPassResearch in lib/services/perplexity.ts without domain filter for broader news search
+- [X] T057 [US3] Implement Pass 3 (Prospect Background) in performMultiPassResearch in lib/services/perplexity.ts searching LinkedIn, company pages, and professional sources
+- [X] T058 [US3] Add 60-second timeout per pass in performMultiPassResearch in lib/services/perplexity.ts using withTimeout utility
+- [X] T059 [US3] Add 180-second total timeout in performMultiPassResearch in lib/services/perplexity.ts using withTimeout utility
+- [X] T060 [US3] Implement graceful degradation in performMultiPassResearch in lib/services/perplexity.ts to complete available passes even if one fails
+- [X] T061 [US3] Return isPartialData flag in performMultiPassResearch in lib/services/perplexity.ts when any pass fails
 - [ ] T062 [US3] Update orchestrateResearch function in lib/services/research.ts to integrate performMultiPassResearch and replace single Perplexity call
 - [ ] T063 [US3] Update error handling in orchestrateResearch in lib/services/research.ts to handle partial results and mark research brief with confidenceRating: LOW
-- [ ] T064 [US3] Add comprehensive operation logging in orchestrateResearch in lib/services/research.ts for start/end timestamps, fallback occurrences, partial result conditions
+- [X] T064 [US3] Add comprehensive operation logging in orchestrateResearch in lib/services/research.ts for start/end timestamps, fallback occurrences, partial result conditions
 
 **Checkpoint**: User Story 3 complete - multi-pass research strategy implemented with graceful degradation and comprehensive logging
 

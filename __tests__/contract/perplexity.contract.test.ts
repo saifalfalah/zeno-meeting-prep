@@ -3,6 +3,8 @@ import type {
   CompanyResearchData,
   ResearchSource,
   ResearchMetadata,
+  MultiPassResearchResult,
+  ProspectResearchData,
 } from '@/lib/services/perplexity';
 
 /**
@@ -141,6 +143,178 @@ describe('Perplexity Service Contracts', () => {
 
       expect(mockMetadata.totalTokens).toBe(2500);
       expect(mockMetadata.durationMs).toBe(8000);
+    });
+  });
+
+  describe('MultiPassResearchResult structure (US3)', () => {
+    it('should include data from all 3 passes', () => {
+      const mockResult: MultiPassResearchResult = {
+        companyWebsitePass: {
+          content: 'Company website information...',
+          sources: [{ url: 'https://company.com' }],
+        },
+        companyNewsPass: {
+          content: 'Recent company news...',
+          sources: [{ url: 'https://news.com/article' }],
+        },
+        prospectBackgroundPass: {
+          content: 'Prospect background information...',
+          sources: [{ url: 'https://linkedin.com/in/prospect' }],
+        },
+        metadata: {
+          model: 'sonar-pro',
+          timestamp: new Date().toISOString(),
+          totalDurationMs: 45000,
+          passesCompleted: 3,
+        },
+        isPartialData: false,
+      };
+
+      expect(mockResult.companyWebsitePass).toBeDefined();
+      expect(mockResult.companyNewsPass).toBeDefined();
+      expect(mockResult.prospectBackgroundPass).toBeDefined();
+      expect(mockResult.metadata).toBeDefined();
+      expect(mockResult.isPartialData).toBe(false);
+    });
+
+    it('should support partial results when passes fail', () => {
+      const mockResult: MultiPassResearchResult = {
+        companyWebsitePass: {
+          content: 'Company website information...',
+          sources: [{ url: 'https://company.com' }],
+        },
+        companyNewsPass: {
+          content: 'Recent company news...',
+          sources: [{ url: 'https://news.com/article' }],
+        },
+        prospectBackgroundPass: null,
+        metadata: {
+          model: 'sonar-pro',
+          timestamp: new Date().toISOString(),
+          totalDurationMs: 120000,
+          passesCompleted: 2,
+          errors: ['Pass 3 timed out after 60s'],
+        },
+        isPartialData: true,
+      };
+
+      expect(mockResult.companyWebsitePass).toBeDefined();
+      expect(mockResult.companyNewsPass).toBeDefined();
+      expect(mockResult.prospectBackgroundPass).toBeNull();
+      expect(mockResult.isPartialData).toBe(true);
+      expect(mockResult.metadata.passesCompleted).toBe(2);
+      expect(mockResult.metadata.errors).toHaveLength(1);
+    });
+
+    it('should include operation logs for each pass', () => {
+      const mockResult: MultiPassResearchResult = {
+        companyWebsitePass: {
+          content: 'Test',
+          sources: [],
+        },
+        companyNewsPass: {
+          content: 'Test',
+          sources: [],
+        },
+        prospectBackgroundPass: {
+          content: 'Test',
+          sources: [],
+        },
+        metadata: {
+          model: 'sonar-pro',
+          timestamp: new Date().toISOString(),
+          totalDurationMs: 45000,
+          passesCompleted: 3,
+        },
+        isPartialData: false,
+        operationLogs: [
+          {
+            pass: 'company_website',
+            startTime: Date.now(),
+            endTime: Date.now() + 15000,
+            duration: 15000,
+            apiCallParams: {
+              model: 'sonar-pro',
+              temperature: 0.2,
+              max_tokens: 4000,
+              search_domain_filter: ['company.com'],
+            },
+            responseMetadata: {
+              tokenCount: 2000,
+              sourcesCited: 3,
+            },
+            isPartialResult: false,
+            fallbackOccurred: false,
+          },
+        ],
+      };
+
+      expect(mockResult.operationLogs).toBeDefined();
+      expect(Array.isArray(mockResult.operationLogs)).toBe(true);
+      expect(mockResult.operationLogs?.[0].pass).toBe('company_website');
+    });
+  });
+
+  describe('ProspectResearchData structure (US3)', () => {
+    it('should include sources and metadata fields', () => {
+      const mockData: ProspectResearchData = {
+        name: 'John Doe',
+        title: 'VP of Engineering',
+        linkedinUrl: 'https://linkedin.com/in/johndoe',
+        background: 'Experienced engineering leader...',
+        sources: [
+          {
+            url: 'https://linkedin.com/in/johndoe',
+            title: 'LinkedIn Profile',
+          },
+          {
+            url: 'https://company.com/team',
+            title: 'Company Team Page',
+          },
+        ],
+        metadata: {
+          model: 'sonar-pro',
+          timestamp: new Date().toISOString(),
+          totalTokens: 1800,
+          durationMs: 12000,
+        },
+      };
+
+      expect(mockData.sources).toBeDefined();
+      expect(Array.isArray(mockData.sources)).toBe(true);
+      expect(mockData.sources.length).toBeGreaterThan(0);
+      expect(mockData.metadata).toBeDefined();
+      expect(mockData.metadata?.model).toBe('sonar-pro');
+    });
+
+    it('should allow optional prospect fields', () => {
+      const mockData: ProspectResearchData = {
+        name: 'Jane Smith',
+        title: 'CEO',
+        company: 'Acme Corp',
+        email: 'jane@acme.com',
+        linkedinUrl: 'https://linkedin.com/in/janesmith',
+        twitterUrl: 'https://twitter.com/janesmith',
+        background: 'Serial entrepreneur...',
+        recentActivity: ['Spoke at Tech Conference 2024', 'Published article on AI'],
+        sources: [],
+      };
+
+      expect(mockData.name).toBeDefined();
+      expect(mockData.title).toBeDefined();
+      expect(mockData.company).toBe('Acme Corp');
+      expect(mockData.email).toBe('jane@acme.com');
+      expect(mockData.recentActivity).toHaveLength(2);
+    });
+
+    it('should support minimal prospect data', () => {
+      const mockData: ProspectResearchData = {
+        name: 'Unknown Prospect',
+        sources: [{ url: 'https://example.com' }],
+      };
+
+      expect(mockData.name).toBeDefined();
+      expect(mockData.sources).toBeDefined();
     });
   });
 });
