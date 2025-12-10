@@ -7,6 +7,7 @@ global.fetch = vi.fn();
 describe('Perplexity API Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.PERPLEXITY_API_KEY = 'test-api-key';
   });
 
   describe('researchCompany', () => {
