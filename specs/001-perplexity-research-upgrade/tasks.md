@@ -102,25 +102,25 @@ Project structure follows Next.js 15 App Router conventions:
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T031 [P] [US2] Create test file __tests__/unit/components/adhoc/AdHocForm.test.tsx to test website field validation
-- [ ] T032 [P] [US2] Add test in __tests__/unit/components/adhoc/AdHocForm.test.tsx for form submission with website only
-- [ ] T033 [P] [US2] Add test in __tests__/unit/components/adhoc/AdHocForm.test.tsx for URL format normalization (http/https/bare domain)
-- [ ] T034 [P] [US2] Add test in __tests__/integration/api/adhoc.test.ts to test POST /api/adhoc with website field
-- [ ] T035 [P] [US2] Add test in __tests__/integration/api/adhoc.test.ts for website-only submission success
-- [ ] T036 [P] [US2] Add test in __tests__/integration/api/adhoc.test.ts for invalid website URL rejection
+- [X] T031 [P] [US2] Create test file __tests__/unit/components/adhoc/AdHocForm.test.tsx to test website field validation
+- [X] T032 [P] [US2] Add test in __tests__/unit/components/adhoc/AdHocForm.test.tsx for form submission with website only
+- [X] T033 [P] [US2] Add test in __tests__/unit/components/adhoc/AdHocForm.test.tsx for URL format normalization (http/https/bare domain)
+- [X] T034 [P] [US2] Add test in __tests__/integration/api/adhoc.test.ts to test POST /api/adhoc with website field
+- [X] T035 [P] [US2] Add test in __tests__/integration/api/adhoc.test.ts for website-only submission success
+- [X] T036 [P] [US2] Add test in __tests__/integration/api/adhoc.test.ts for invalid website URL rejection
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] [US2] Add website input field to AdHocForm component in components/adhoc/AdHocForm.tsx with proper label, placeholder, and accessibility attributes
-- [ ] T038 [US2] Add URL validation logic in AdHocForm component in components/adhoc/AdHocForm.tsx using Zod schema
-- [ ] T039 [US2] Update form validation in AdHocForm component in components/adhoc/AdHocForm.tsx to accept submissions with only website field populated
-- [ ] T040 [US2] Add helper text to website field in components/adhoc/AdHocForm.tsx explaining "Prioritized over email domain when both are provided"
-- [ ] T041 [US2] Update Zod schema in app/api/adhoc/route.ts to add website: z.string().url().trim().optional()
-- [ ] T042 [US2] Update cross-field validation in app/api/adhoc/route.ts to require at least one of prospectName, companyName, email, or website
-- [ ] T043 [US2] Update request handler in app/api/adhoc/route.ts to pass website field to Inngest event
-- [ ] T044 [US2] Update generate-adhoc-research.ts in lib/inngest/functions/ to extract website from event data and pass to ProspectInput
-- [ ] T045 [US2] Update orchestrateResearch function in lib/services/research.ts to accept website parameter in ProspectInput and prioritize over companyDomain
-- [ ] T046 [US2] Add test in __tests__/unit/services/research.test.ts to verify website prioritization over email domain
+- [X] T037 [P] [US2] Add website input field to AdHocForm component in components/adhoc/AdHocForm.tsx with proper label, placeholder, and accessibility attributes
+- [X] T038 [US2] Add URL validation logic in AdHocForm component in components/adhoc/AdHocForm.tsx using Zod schema
+- [X] T039 [US2] Update form validation in AdHocForm component in components/adhoc/AdHocForm.tsx to accept submissions with only website field populated
+- [X] T040 [US2] Add helper text to website field in components/adhoc/AdHocForm.tsx explaining "Prioritized over email domain when both are provided"
+- [X] T041 [US2] Update Zod schema in app/api/adhoc/route.ts to add website: z.string().url().trim().optional()
+- [X] T042 [US2] Update cross-field validation in app/api/adhoc/route.ts to require at least one of prospectName, companyName, email, or website
+- [X] T043 [US2] Update request handler in app/api/adhoc/route.ts to pass website field to Inngest event
+- [X] T044 [US2] Update generate-adhoc-research.ts in lib/inngest/functions/ to extract website from event data and pass to ProspectInput
+- [X] T045 [US2] Update orchestrateResearch function in lib/services/research.ts to accept website parameter in ProspectInput and prioritize over companyDomain
+- [X] T046 [US2] Add test in __tests__/unit/services/research.test.ts to verify website prioritization over email domain
 
 **Checkpoint**: User Story 2 complete - ad-hoc form accepts website field with validation, research prioritizes explicit websites
 

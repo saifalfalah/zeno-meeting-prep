@@ -20,6 +20,7 @@ export function AdHocForm({ campaigns, onSubmit, isSubmitting = false }: AdHocFo
   const [prospectName, setProspectName] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
+  const [website, setWebsite] = useState('')
   const [campaignId, setCampaignId] = useState(campaigns[0]?.id || '')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -29,18 +30,57 @@ export function AdHocForm({ campaigns, onSubmit, isSubmitting = false }: AdHocFo
     return emailRegex.test(email)
   }
 
+  const validateUrl = (url: string): boolean => {
+    if (!url) return true // URL is optional
+
+    let parsedUrl: URL
+    try {
+      // Try parsing as-is
+      parsedUrl = new URL(url)
+    } catch {
+      try {
+        // Try with https:// prefix for bare domains
+        parsedUrl = new URL(`https://${url}`)
+      } catch {
+        return false
+      }
+    }
+
+    // Only allow http and https protocols (reject javascript:, data:, etc.)
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      return false
+    }
+
+    // Must have a valid hostname
+    if (!parsedUrl.hostname || parsedUrl.hostname.length === 0) {
+      return false
+    }
+
+    // Hostname must contain at least one dot (reject bare hostnames like "invalid")
+    if (!parsedUrl.hostname.includes('.')) {
+      return false
+    }
+
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const newErrors: Record<string, string> = {}
 
     // At least one field must be provided
-    if (!prospectName.trim() && !companyName.trim() && !email.trim()) {
-      newErrors.form = 'Please provide at least one field: Prospect Name, Company Name, or Email'
+    if (!prospectName.trim() && !companyName.trim() && !email.trim() && !website.trim()) {
+      newErrors.form = 'Please provide at least one field: Prospect Name, Company Name, Email, or Website'
     }
 
     // Validate email format if provided
     if (email.trim() && !validateEmail(email.trim())) {
       newErrors.email = 'Please enter a valid email address'
+    }
+
+    // Validate website URL format if provided
+    if (website.trim() && !validateUrl(website.trim())) {
+      newErrors.website = 'Please enter a valid website URL (e.g., https://example.com or example.com)'
     }
 
     // Campaign must be selected
@@ -55,6 +95,7 @@ export function AdHocForm({ campaigns, onSubmit, isSubmitting = false }: AdHocFo
         prospectName: prospectName.trim() || undefined,
         companyName: companyName.trim() || undefined,
         email: email.trim() || undefined,
+        website: website.trim() || undefined,
         campaignId,
       })
     }
@@ -191,6 +232,37 @@ export function AdHocForm({ campaigns, onSubmit, isSubmitting = false }: AdHocFo
           </p>
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+          )}
+        </div>
+
+        {/* Website */}
+        <div>
+          <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
+            Company Website
+          </label>
+          <input
+            id="website"
+            type="text"
+            value={website}
+            onChange={(e) => {
+              setWebsite(e.target.value)
+              if (errors.website || errors.form) {
+                setErrors({ ...errors, website: '', form: '' })
+              }
+            }}
+            disabled={isSubmitting}
+            placeholder="https://acmecorp.com"
+            className={`
+              w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent
+              ${errors.website ? 'border-red-500' : 'border-gray-300'}
+              ${isSubmitting ? 'bg-gray-100 cursor-not-allowed' : ''}
+            `}
+          />
+          <p className="mt-1 text-sm text-gray-500">
+            Optional - prioritized over email domain when both are provided
+          </p>
+          {errors.website && (
+            <p className="mt-1 text-sm text-red-600">{errors.website}</p>
           )}
         </div>
       </div>

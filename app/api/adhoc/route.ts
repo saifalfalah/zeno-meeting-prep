@@ -10,21 +10,65 @@ import {
 import { inngest } from '@/lib/inngest/client'
 import { z } from 'zod'
 
+// Custom URL validator that accepts bare domains
+const validateWebsiteUrl = (value: string | undefined): boolean => {
+  if (!value || value.length === 0) return true; // Optional field
+
+  let url: URL;
+  try {
+    // Try parsing as-is
+    url = new URL(value);
+  } catch {
+    try {
+      // Try with https:// prefix for bare domains
+      url = new URL(`https://${value}`);
+    } catch {
+      return false;
+    }
+  }
+
+  // Only allow http and https protocols (reject javascript:, data:, etc.)
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return false;
+  }
+
+  // Must have a valid hostname
+  if (!url.hostname || url.hostname.length === 0) {
+    return false;
+  }
+
+  // Hostname must contain at least one dot (reject bare hostnames like "invalid")
+  if (!url.hostname.includes('.')) {
+    return false;
+  }
+
+  return true;
+};
+
 // Validation schema for ad-hoc research request creation
 const createAdHocSchema = z
   .object({
     prospectName: z.string().trim().optional(),
     companyName: z.string().trim().optional(),
     email: z.string().email('Invalid email format').trim().optional(),
+    website: z
+      .string()
+      .trim()
+      .optional()
+      .refine(
+        (val) => validateWebsiteUrl(val),
+        { message: 'Invalid website URL (e.g., https://example.com or example.com)' }
+      ),
     campaignId: z.string().min(1, 'Campaign ID is required'),
   })
   .refine(
     (data) =>
       (data.prospectName && data.prospectName.length > 0) ||
       (data.companyName && data.companyName.length > 0) ||
-      (data.email && data.email.length > 0),
+      (data.email && data.email.length > 0) ||
+      (data.website && data.website.length > 0),
     {
-      message: 'At least one of prospectName, companyName, or email must be provided',
+      message: 'At least one of prospectName, companyName, email, or website must be provided',
       path: ['form'],
     }
   )
@@ -84,6 +128,7 @@ export async function POST(request: NextRequest) {
       prospectName: validatedData.prospectName || null,
       companyName: validatedData.companyName || null,
       email: validatedData.email || null,
+      website: validatedData.website || null,
       status: 'pending',
     })
 
@@ -96,6 +141,7 @@ export async function POST(request: NextRequest) {
         prospectName: validatedData.prospectName,
         companyName: validatedData.companyName,
         email: validatedData.email,
+        website: validatedData.website,
       },
     })
 

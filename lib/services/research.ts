@@ -41,10 +41,21 @@ export async function orchestrateResearch(input: {
 }): Promise<ResearchResult> {
   const { campaignContext, prospects } = input;
 
-  // Step 1: Extract unique company domains
+  // Step 1: Extract unique company domains (prioritize website over email)
   const companyDomains = new Set<string>();
   prospects.forEach((prospect) => {
-    const domain = prospect.companyDomain || extractDomainFromEmail(prospect.email);
+    let domain = prospect.companyDomain;
+
+    // Prioritize website for domain extraction
+    if (!domain && prospect.website) {
+      domain = extractDomainFromWebsite(prospect.website);
+    }
+
+    // Fallback to email domain
+    if (!domain) {
+      domain = extractDomainFromEmail(prospect.email);
+    }
+
     if (domain) {
       companyDomains.add(domain);
     }
@@ -53,7 +64,18 @@ export async function orchestrateResearch(input: {
   // Step 2: Research all prospects in parallel (with error handling)
   const prospectResearchPromises = prospects.map(async (prospect) => {
     try {
-      const domain = prospect.companyDomain || extractDomainFromEmail(prospect.email);
+      let domain = prospect.companyDomain;
+
+      // Prioritize website for domain extraction
+      if (!domain && prospect.website) {
+        domain = extractDomainFromWebsite(prospect.website);
+      }
+
+      // Fallback to email domain
+      if (!domain) {
+        domain = extractDomainFromEmail(prospect.email);
+      }
+
       return await researchProspect({
         email: prospect.email,
         name: prospect.name,
@@ -155,4 +177,36 @@ export async function orchestrateResearch(input: {
 function extractDomainFromEmail(email: string): string | undefined {
   const match = email.match(/@(.+)$/);
   return match ? match[1].toLowerCase() : undefined;
+}
+
+/**
+ * Extract domain from website URL
+ * @param website - Website URL (can be full URL or bare domain)
+ * @returns Domain or undefined if invalid URL
+ */
+function extractDomainFromWebsite(website: string): string | undefined {
+  try {
+    // Try parsing as-is
+    let url: URL;
+    try {
+      url = new URL(website);
+    } catch {
+      // Try with https:// prefix for bare domains
+      url = new URL(`https://${website}`);
+    }
+
+    // Extract domain (without www)
+    let hostname = url.hostname.replace(/^www\./, '');
+
+    // Extract base domain (e.g., acme.com from subdomain.acme.com)
+    const parts = hostname.split('.');
+    if (parts.length >= 2) {
+      hostname = parts.slice(-2).join('.');
+    }
+
+    return hostname.toLowerCase();
+  } catch (error) {
+    console.warn('Failed to extract domain from website:', website, error);
+    return undefined;
+  }
 }

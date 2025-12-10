@@ -211,4 +211,129 @@ describe('Research Orchestration Service', () => {
       expect(perplexity.researchCompany).toHaveBeenCalledWith('acme.com');
     });
   });
+
+  describe('T046: Website prioritization over email domain (User Story 2)', () => {
+    const mockCampaignContext = {
+      companyName: 'Our Company',
+      companyDescription: 'We provide AI solutions',
+      offeringTitle: 'AI Platform',
+      offeringDescription: 'Enterprise AI platform',
+      targetCustomer: 'Enterprise companies',
+      keyPainPoints: ['Scalability', 'Cost'],
+    };
+
+    it('should prioritize explicit website over email domain when both provided', async () => {
+      const prospectsWithWebsite = [
+        {
+          email: 'john@wrongdomain.com',
+          name: 'John Doe',
+          website: 'https://acme.com',
+        },
+      ];
+
+      vi.spyOn(perplexity, 'researchProspect').mockResolvedValueOnce({
+        name: 'John Doe',
+      });
+      vi.spyOn(perplexity, 'researchCompany').mockResolvedValueOnce({
+        name: 'Acme Corp',
+      });
+      vi.spyOn(claude, 'generateResearchBrief').mockResolvedValueOnce({
+        confidenceRating: 'HIGH',
+        confidenceExplanation: 'Complete data',
+      });
+
+      await orchestrateResearch({
+        campaignContext: mockCampaignContext,
+        prospects: prospectsWithWebsite,
+      });
+
+      // Should use website domain (acme.com), not email domain (wrongdomain.com)
+      expect(perplexity.researchCompany).toHaveBeenCalledWith('acme.com');
+      expect(perplexity.researchCompany).not.toHaveBeenCalledWith('wrongdomain.com');
+    });
+
+    it('should use website when provided without email', async () => {
+      const prospectsWebsiteOnly = [
+        {
+          name: 'John Doe',
+          website: 'https://acme.com',
+        },
+      ];
+
+      vi.spyOn(perplexity, 'researchProspect').mockResolvedValueOnce({
+        name: 'John Doe',
+      });
+      vi.spyOn(perplexity, 'researchCompany').mockResolvedValueOnce({
+        name: 'Acme Corp',
+      });
+      vi.spyOn(claude, 'generateResearchBrief').mockResolvedValueOnce({
+        confidenceRating: 'HIGH',
+        confidenceExplanation: 'Complete data',
+      });
+
+      await orchestrateResearch({
+        campaignContext: mockCampaignContext,
+        prospects: prospectsWebsiteOnly,
+      });
+
+      // Should use website domain
+      expect(perplexity.researchCompany).toHaveBeenCalledWith('acme.com');
+    });
+
+    it('should extract domain from website URL properly', async () => {
+      const prospectsWithFullUrl = [
+        {
+          name: 'John Doe',
+          website: 'https://www.acme.com/about/team',
+        },
+      ];
+
+      vi.spyOn(perplexity, 'researchProspect').mockResolvedValueOnce({
+        name: 'John Doe',
+      });
+      vi.spyOn(perplexity, 'researchCompany').mockResolvedValueOnce({
+        name: 'Acme Corp',
+      });
+      vi.spyOn(claude, 'generateResearchBrief').mockResolvedValueOnce({
+        confidenceRating: 'HIGH',
+        confidenceExplanation: 'Complete data',
+      });
+
+      await orchestrateResearch({
+        campaignContext: mockCampaignContext,
+        prospects: prospectsWithFullUrl,
+      });
+
+      // Should extract acme.com from full URL
+      expect(perplexity.researchCompany).toHaveBeenCalledWith('acme.com');
+    });
+
+    it('should fallback to email domain when website is not provided', async () => {
+      const prospectsEmailOnly = [
+        {
+          email: 'john@acme.com',
+          name: 'John Doe',
+        },
+      ];
+
+      vi.spyOn(perplexity, 'researchProspect').mockResolvedValueOnce({
+        name: 'John Doe',
+      });
+      vi.spyOn(perplexity, 'researchCompany').mockResolvedValueOnce({
+        name: 'Acme Corp',
+      });
+      vi.spyOn(claude, 'generateResearchBrief').mockResolvedValueOnce({
+        confidenceRating: 'HIGH',
+        confidenceExplanation: 'Complete data',
+      });
+
+      await orchestrateResearch({
+        campaignContext: mockCampaignContext,
+        prospects: prospectsEmailOnly,
+      });
+
+      // Should use email domain as fallback
+      expect(perplexity.researchCompany).toHaveBeenCalledWith('acme.com');
+    });
+  });
 });
