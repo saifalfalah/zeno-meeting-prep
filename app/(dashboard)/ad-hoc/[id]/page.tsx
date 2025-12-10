@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { PDFDownloadButton } from '@/components/brief/PDFDownloadButton'
 import { ErrorDisplay } from '@/components/brief/ErrorDisplay'
+import { ResearchBriefSkeleton } from '@/components/ui/Skeleton'
 
 export default function AdHocBriefDetailPage() {
   const params = useParams()
@@ -104,11 +105,13 @@ export default function AdHocBriefDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600">Loading research brief...</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-5xl mx-auto px-4 mb-6">
+          <Button variant="ghost" onClick={() => router.push('/ad-hoc')}>
+            ← Back to Ad-Hoc Research
+          </Button>
         </div>
+        <ResearchBriefSkeleton />
       </div>
     )
   }

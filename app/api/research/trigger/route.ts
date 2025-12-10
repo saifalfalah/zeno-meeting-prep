@@ -3,7 +3,7 @@ import { auth } from '@/lib/auth/config';
 import { inngest } from '@/lib/inngest/client';
 import { db } from '@/lib/db/client';
 import { meetings, adHocResearchRequests } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 /**
  * Manually trigger research for a meeting or ad-hoc request

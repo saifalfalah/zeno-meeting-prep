@@ -264,15 +264,15 @@ Based on plan.md, this is a Next.js 15 App Router application with paths at repo
 
 **Purpose**: Final improvements affecting multiple user stories
 
-- [ ] T121 [P] Add loading skeletons for all data-fetching components
-- [ ] T122 [P] Implement optimistic UI updates for status changes
-- [ ] T123 Add accessibility (ARIA labels, keyboard navigation, color contrast)
+- [X] T121 [P] Add loading skeletons for all data-fetching components
+- [X] T122 [P] Implement optimistic UI updates for status changes
+- [X] T123 Add accessibility (ARIA labels, keyboard navigation, color contrast)
 - [ ] T124 [P] Add analytics tracking for key user actions
 - [ ] T125 Performance optimization: Code splitting for route groups
 - [ ] T126 Performance optimization: Database query indexing verification
 - [ ] T127 Security review: Input validation on all API routes using Zod
 - [ ] T128 Security review: CSRF protection for state-changing operations
-- [ ] T129 Create database seed script for development in lib/db/seed.ts
+- [X] T129 Create database seed script for development in lib/db/seed.ts
 - [ ] T130 Run quickstart.md validation - verify all setup steps work
 
 ---
