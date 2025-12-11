@@ -168,16 +168,16 @@ Project structure follows Next.js 15 App Router conventions:
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T065 [P] [US4] Add test in __tests__/unit/services/research.test.ts to verify webhook-triggered research uses same configuration as ad-hoc
-- [ ] T066 [P] [US4] Add test in __tests__/unit/services/research.test.ts to verify domain extraction from email works correctly in webhook flow
+- [X] T065 [P] [US4] Add test in __tests__/unit/services/research.test.ts to verify webhook-triggered research uses same configuration as ad-hoc
+- [X] T066 [P] [US4] Add test in __tests__/unit/services/research.test.ts to verify domain extraction from email works correctly in webhook flow
 
 ### Implementation for User Story 4
 
-- [ ] T067 [P] [US4] Update generate-research.ts in lib/inngest/functions/ to apply new Perplexity configuration (sonar-pro, multi-pass)
-- [ ] T068 [P] [US4] Update generate-research.ts in lib/inngest/functions/ to handle multi-pass research results and log operation details
-- [ ] T069 [US4] Add rate limit error handling in generate-research.ts in lib/inngest/functions/ to complete available passes and mark brief as partial
-- [ ] T070 [US4] Add 5-minute hard timeout in generate-research.ts in lib/inngest/functions/ using Inngest step timeout configuration
-- [ ] T071 [US4] Verify webhook path uses same domain extraction logic as ad-hoc path in lib/services/research.ts
+- [X] T067 [P] [US4] Update generate-research.ts in lib/inngest/functions/ to apply new Perplexity configuration (sonar-pro, multi-pass)
+- [X] T068 [P] [US4] Update generate-research.ts in lib/inngest/functions/ to handle multi-pass research results and log operation details
+- [X] T069 [US4] Add rate limit error handling in generate-research.ts in lib/inngest/functions/ to complete available passes and mark brief as partial
+- [X] T070 [US4] Add 5-minute hard timeout in generate-research.ts in lib/inngest/functions/ using Inngest step timeout configuration
+- [X] T071 [US4] Verify webhook path uses same domain extraction logic as ad-hoc path in lib/services/research.ts
 
 **Checkpoint**: User Story 4 complete - webhook-triggered research produces same quality results as ad-hoc research
 

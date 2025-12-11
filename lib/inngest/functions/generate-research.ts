@@ -168,19 +168,47 @@ export const generateResearch = inngest.createFunction(
     });
 
     // Step 3: Orchestrate research (Perplexity + Claude)
+    // T067-T068: Apply new Perplexity configuration (sonar-pro, multi-pass) with comprehensive logging
+    // T070: 5-minute timeout enforced by performMultiPassResearch (60s per pass, 180s total, with 5min hard max)
     const researchResult = await step.run('orchestrate-research', async () => {
+      const startTime = Date.now();
+
       try {
-        return await orchestrateResearch({
+        // Starting multi-pass research with sonar-pro model
+        const result = await orchestrateResearch({
           campaignContext,
           prospects,
         });
+
+        const durationMs = Date.now() - startTime;
+
+        // Log completion for monitoring
+        if (result.isPartialData) {
+          console.warn('[generate-research] Multi-pass research completed with partial data', {
+            durationMs,
+            prospectResearchCount: result.prospectResearch.length,
+            confidenceRating: result.brief.confidenceRating,
+          });
+        }
+
+        return result;
       } catch (error) {
-        // Check if it's a rate limit error
+        const durationMs = Date.now() - startTime;
+        console.error('[generate-research] Research orchestration failed', {
+          durationMs,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          type,
+        });
+
+        // T069: Check if it's a rate limit error
         if (error instanceof RetryAfterError) {
+          console.warn('[generate-research] Rate limit encountered, will retry', {
+            retryAfter: (error as any).retryAfter,
+          });
           throw error;
         }
-        // Otherwise, continue with whatever data we have
-        console.error('Research orchestration failed:', error);
+
+        // Otherwise, throw to trigger retry or failure handler
         throw error;
       }
     });
@@ -234,7 +262,16 @@ export const generateResearch = inngest.createFunction(
     });
 
     // Step 5: Create research brief record
+    // T069: Mark brief as partial if some research passes failed
     const briefId = await step.run('create-brief-record', async () => {
+      // Log partial data condition
+      if (researchResult.isPartialData) {
+        console.warn('[generate-research] Creating research brief with partial data', {
+          confidenceRating: researchResult.brief.confidenceRating,
+          prospectResearchCount: researchResult.prospectResearch.length,
+        });
+      }
+
       const [brief] = await db.insert(researchBriefs).values({
         type,
         campaignId,

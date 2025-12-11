@@ -590,4 +590,166 @@ describe('Research Orchestration Service', () => {
       expect(result.isPartialData).toBe(false);
     });
   });
+
+  describe('T065-T066: Webhook research consistency (User Story 4)', () => {
+    const mockCampaignContext = {
+      companyName: 'Our Company',
+      companyDescription: 'We provide AI solutions',
+      offeringTitle: 'AI Platform',
+      offeringDescription: 'Enterprise AI platform',
+      targetCustomer: 'Enterprise companies',
+      keyPainPoints: ['Scalability', 'Cost'],
+    };
+
+    it('should use same Perplexity configuration (sonar-pro, multi-pass) for webhook-triggered research', async () => {
+      const mockProspects = [
+        {
+          email: 'john@acme.com',
+          name: 'John Doe',
+        },
+      ];
+
+      const mockMultiPassResult = {
+        companyWebsitePass: {
+          content: 'Company website information',
+          sources: [{ url: 'https://acme.com', title: 'Acme Corp' }],
+        },
+        companyNewsPass: {
+          content: 'Recent company news',
+          sources: [{ url: 'https://news.com/acme', title: 'Acme News' }],
+        },
+        prospectBackgroundPass: {
+          content: 'John Doe background',
+          sources: [{ url: 'https://linkedin.com/john', title: 'John LinkedIn' }],
+        },
+        metadata: {
+          model: 'sonar-pro',
+          timestamp: '2025-01-01T00:00:00Z',
+          totalDurationMs: 5000,
+          passesCompleted: 3,
+        },
+        isPartialData: false,
+        operationLogs: [],
+      };
+
+      vi.spyOn(perplexity, 'performMultiPassResearch').mockResolvedValueOnce(mockMultiPassResult);
+      vi.spyOn(claude, 'generateResearchBrief').mockResolvedValueOnce({
+        confidenceRating: 'HIGH',
+        confidenceExplanation: 'Complete data',
+      });
+
+      const result = await orchestrateResearch({
+        campaignContext: mockCampaignContext,
+        prospects: mockProspects,
+      });
+
+      // Should use performMultiPassResearch (same as ad-hoc)
+      expect(perplexity.performMultiPassResearch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prospectName: 'John Doe',
+          prospectEmail: 'john@acme.com',
+        }),
+        expect.any(Object)
+      );
+
+      // Should return metadata with sonar-pro model
+      expect(result.prospectResearch[0]?.metadata?.model).toBe('sonar-pro');
+    });
+
+    it('should extract company domain from email correctly in webhook flow', async () => {
+      const mockProspects = [
+        {
+          email: 'john@acme.com',
+          name: 'John Doe',
+          // No explicit website or companyDomain - should be extracted from email
+        },
+      ];
+
+      const mockMultiPassResult = {
+        companyWebsitePass: {
+          content: 'Company website information',
+          sources: [{ url: 'https://acme.com', title: 'Acme Corp' }],
+        },
+        companyNewsPass: {
+          content: 'Recent company news',
+          sources: [],
+        },
+        prospectBackgroundPass: {
+          content: 'John Doe background',
+          sources: [],
+        },
+        metadata: {
+          model: 'sonar-pro',
+          timestamp: '2025-01-01T00:00:00Z',
+          totalDurationMs: 5000,
+          passesCompleted: 3,
+        },
+        isPartialData: false,
+        operationLogs: [],
+      };
+
+      vi.spyOn(perplexity, 'performMultiPassResearch').mockResolvedValueOnce(mockMultiPassResult);
+      vi.spyOn(claude, 'generateResearchBrief').mockResolvedValueOnce({
+        confidenceRating: 'HIGH',
+        confidenceExplanation: 'Complete data',
+      });
+
+      await orchestrateResearch({
+        campaignContext: mockCampaignContext,
+        prospects: mockProspects,
+      });
+
+      // Should extract domain from email (acme.com from john@acme.com)
+      expect(perplexity.performMultiPassResearch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          prospectEmail: 'john@acme.com',
+          companyDomain: 'acme.com',
+        }),
+        expect.any(Object)
+      );
+    });
+
+    it('should handle webhook prospects with no website field same as ad-hoc', async () => {
+      const mockProspects = [
+        {
+          email: 'jane@example.com',
+          name: 'Jane Smith',
+          companyDomain: 'example.com',
+        },
+      ];
+
+      const mockMultiPassResult = {
+        companyWebsitePass: { content: 'Info', sources: [] },
+        companyNewsPass: { content: 'News', sources: [] },
+        prospectBackgroundPass: { content: 'Background', sources: [] },
+        metadata: {
+          model: 'sonar-pro',
+          timestamp: '2025-01-01T00:00:00Z',
+          totalDurationMs: 5000,
+          passesCompleted: 3,
+        },
+        isPartialData: false,
+        operationLogs: [],
+      };
+
+      vi.spyOn(perplexity, 'performMultiPassResearch').mockResolvedValueOnce(mockMultiPassResult);
+      vi.spyOn(claude, 'generateResearchBrief').mockResolvedValueOnce({
+        confidenceRating: 'HIGH',
+        confidenceExplanation: 'Complete data',
+      });
+
+      await orchestrateResearch({
+        campaignContext: mockCampaignContext,
+        prospects: mockProspects,
+      });
+
+      // Should use provided companyDomain
+      expect(perplexity.performMultiPassResearch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          companyDomain: 'example.com',
+        }),
+        expect.any(Object)
+      );
+    });
+  });
 });
