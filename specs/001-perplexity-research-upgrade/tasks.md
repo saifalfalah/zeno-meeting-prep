@@ -152,8 +152,8 @@ Project structure follows Next.js 15 App Router conventions:
 - [X] T059 [US3] Add 180-second total timeout in performMultiPassResearch in lib/services/perplexity.ts using withTimeout utility
 - [X] T060 [US3] Implement graceful degradation in performMultiPassResearch in lib/services/perplexity.ts to complete available passes even if one fails
 - [X] T061 [US3] Return isPartialData flag in performMultiPassResearch in lib/services/perplexity.ts when any pass fails
-- [ ] T062 [US3] Update orchestrateResearch function in lib/services/research.ts to integrate performMultiPassResearch and replace single Perplexity call
-- [ ] T063 [US3] Update error handling in orchestrateResearch in lib/services/research.ts to handle partial results and mark research brief with confidenceRating: LOW
+- [X] T062 [US3] Update orchestrateResearch function in lib/services/research.ts to integrate performMultiPassResearch and replace single Perplexity call
+- [X] T063 [US3] Update error handling in orchestrateResearch in lib/services/research.ts to handle partial results and mark research brief with confidenceRating: LOW
 - [X] T064 [US3] Add comprehensive operation logging in orchestrateResearch in lib/services/research.ts for start/end timestamps, fallback occurrences, partial result conditions
 
 **Checkpoint**: User Story 3 complete - multi-pass research strategy implemented with graceful degradation and comprehensive logging

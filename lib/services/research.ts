@@ -1,4 +1,9 @@
-import { researchCompany, researchProspect, type CompanyResearchData, type ProspectResearchData } from './perplexity';
+import {
+  performMultiPassResearch,
+  type CompanyResearchData,
+  type ProspectResearchData,
+  type MultiPassResearchResult
+} from './perplexity';
 import { generateResearchBrief, type ResearchBriefData, type CampaignContext } from './claude';
 
 export type ResearchFailureStep =
@@ -17,6 +22,7 @@ export interface ResearchResult {
   prospectResearch: ProspectResearchData[];
   companyResearch: CompanyResearchData;
   isPartialData?: boolean;
+  multiPassResults?: MultiPassResearchResult[];
 }
 
 export interface ProspectInput {
@@ -27,9 +33,9 @@ export interface ProspectInput {
 }
 
 /**
- * Orchestrate the full research pipeline:
- * 1. Research all prospects in parallel
- * 2. Research unique companies (deduplicated)
+ * Orchestrate the full research pipeline (T062-T063):
+ * 1. Use multi-pass research for each prospect (company website, company news, prospect background)
+ * 2. Aggregate multi-pass results into structured company and prospect data
  * 3. Generate research brief using Claude
  *
  * @param input - Campaign context and prospects to research
@@ -41,30 +47,11 @@ export async function orchestrateResearch(input: {
 }): Promise<ResearchResult> {
   const { campaignContext, prospects } = input;
 
-  // Step 1: Extract unique company domains (prioritize website over email)
-  const companyDomains = new Set<string>();
-  prospects.forEach((prospect) => {
-    let domain = prospect.companyDomain;
-
-    // Prioritize website for domain extraction
-    if (!domain && prospect.website) {
-      domain = extractDomainFromWebsite(prospect.website);
-    }
-
-    // Fallback to email domain
-    if (!domain) {
-      domain = extractDomainFromEmail(prospect.email);
-    }
-
-    if (domain) {
-      companyDomains.add(domain);
-    }
-  });
-
-  // Step 2: Research all prospects in parallel (with error handling)
-  const prospectResearchPromises = prospects.map(async (prospect) => {
+  // T062: Use performMultiPassResearch for each prospect
+  const multiPassPromises = prospects.map(async (prospect) => {
     try {
       let domain = prospect.companyDomain;
+      let companyName: string | undefined;
 
       // Prioritize website for domain extraction
       if (!domain && prospect.website) {
@@ -72,59 +59,136 @@ export async function orchestrateResearch(input: {
       }
 
       // Fallback to email domain
-      if (!domain) {
+      if (!domain && prospect.email) {
         domain = extractDomainFromEmail(prospect.email);
       }
 
-      return await researchProspect({
-        email: prospect.email,
-        name: prospect.name,
-        companyDomain: domain,
-      });
+      // Extract company name from email if not provided
+      if (!companyName && domain) {
+        companyName = domain.split('.')[0];
+      }
+
+      return await performMultiPassResearch(
+        {
+          prospectName: prospect.name,
+          prospectEmail: prospect.email,
+          companyName,
+          companyDomain: domain,
+          website: prospect.website,
+        },
+        {
+          // Use default timeouts from PERPLEXITY_CONFIG
+        }
+      );
     } catch (error) {
-      console.error(`Failed to research prospect ${prospect.email}:`, error);
-      // Return partial data to continue with other prospects
+      console.error(`Failed to perform multi-pass research for ${prospect.email || prospect.name}:`, error);
+      // Return null to continue with other prospects
       return null;
     }
   });
 
-  const prospectResearchResults = await Promise.all(prospectResearchPromises);
-  const successfulProspectResearch = prospectResearchResults.filter(
-    (result): result is ProspectResearchData => result !== null
+  const multiPassResults = await Promise.all(multiPassPromises);
+  const successfulMultiPassResults = multiPassResults.filter(
+    (result): result is MultiPassResearchResult => result !== null
   );
 
-  // Track if we have partial data
-  const failedProspectCount = prospectResearchResults.filter(r => r === null).length;
-  const hasProspectFailures = failedProspectCount > 0;
+  // T062: Aggregate multi-pass results into structured data for Claude
+  // Extract prospect research data from multi-pass results
+  const prospectResearch: ProspectResearchData[] = successfulMultiPassResults.map((multiPass) => {
+    const prospectData: ProspectResearchData = {};
 
-  // Step 3: Research companies in parallel (with error handling)
-  // Only research the first company domain found (typically all prospects are from same company)
-  const primaryCompanyDomain = Array.from(companyDomains)[0];
-  let companyResearch: CompanyResearchData = {};
-  let companyLookupFailed = false;
-
-  if (primaryCompanyDomain) {
-    try {
-      companyResearch = await researchCompany(primaryCompanyDomain);
-    } catch (error) {
-      console.error(`Failed to research company ${primaryCompanyDomain}:`, error);
-      companyLookupFailed = true;
-      // Continue with empty company data
+    // Combine data from all three passes
+    if (multiPass.prospectBackgroundPass) {
+      // Primary source: prospect background pass
+      try {
+        const parsed = JSON.parse(multiPass.prospectBackgroundPass.content);
+        Object.assign(prospectData, parsed);
+      } catch {
+        // If not JSON, store as background text
+        prospectData.background = multiPass.prospectBackgroundPass.content;
+      }
     }
+
+    // Add sources from all passes
+    prospectData.sources = [
+      ...(multiPass.companyWebsitePass?.sources || []),
+      ...(multiPass.companyNewsPass?.sources || []),
+      ...(multiPass.prospectBackgroundPass?.sources || []),
+    ];
+
+    prospectData.metadata = multiPass.metadata;
+
+    return prospectData;
+  });
+
+  // Extract company research data from multi-pass results
+  // Use the first successful multi-pass result for company data
+  const primaryMultiPass = successfulMultiPassResults[0];
+  const companyResearch: CompanyResearchData = {};
+
+  if (primaryMultiPass) {
+    if (primaryMultiPass.companyWebsitePass) {
+      try {
+        const parsed = JSON.parse(primaryMultiPass.companyWebsitePass.content);
+        Object.assign(companyResearch, parsed);
+      } catch {
+        // If not JSON, store as basic company data
+        companyResearch.website = primaryMultiPass.companyWebsitePass.content;
+      }
+    }
+
+    // Enhance with company news data
+    if (primaryMultiPass.companyNewsPass) {
+      try {
+        const parsed = JSON.parse(primaryMultiPass.companyNewsPass.content);
+        if (parsed.recentNews) {
+          companyResearch.recentNews = parsed.recentNews;
+        }
+      } catch {
+        // If not JSON, add as single news item
+        if (!companyResearch.recentNews) {
+          companyResearch.recentNews = [];
+        }
+        companyResearch.recentNews.push(primaryMultiPass.companyNewsPass.content);
+      }
+    }
+
+    // Add aggregated sources and metadata
+    companyResearch.sources = [
+      ...(primaryMultiPass.companyWebsitePass?.sources || []),
+      ...(primaryMultiPass.companyNewsPass?.sources || []),
+    ];
+    companyResearch.metadata = primaryMultiPass.metadata;
   }
 
-  // Step 4: Generate research brief using Claude
+  // T063: Track if we have partial data from multi-pass research
+  const failedMultiPassCount = multiPassResults.filter(r => r === null).length;
+  const hasMultiPassFailures = failedMultiPassCount > 0;
+  const hasPartialMultiPassData = successfulMultiPassResults.some(r => r.isPartialData);
+  const isPartialData = hasMultiPassFailures || hasPartialMultiPassData || successfulMultiPassResults.length === 0;
+
+  // T064: Log comprehensive operation details
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[Research] Multi-pass orchestration completed', {
+      totalProspects: prospects.length,
+      successfulMultiPass: successfulMultiPassResults.length,
+      failedMultiPass: failedMultiPassCount,
+      isPartialData,
+      operationLogs: successfulMultiPassResults.flatMap(r => r.operationLogs || []),
+    });
+  }
+
+  // Step 3: Generate research brief using Claude
   let brief: ResearchBriefData;
-  const isPartialData = hasProspectFailures || companyLookupFailed || successfulProspectResearch.length === 0;
 
   try {
     brief = await generateResearchBrief({
       campaignContext,
       companyResearch,
-      prospectResearch: successfulProspectResearch,
+      prospectResearch,
     });
 
-    // Override confidence to LOW if we have partial data
+    // T063: Override confidence to LOW if we have partial data
     if (isPartialData && brief.confidenceRating !== 'LOW') {
       brief = {
         ...brief,
@@ -135,8 +199,8 @@ export async function orchestrateResearch(input: {
       };
     }
   } catch (error) {
-    // If brief generation fails but we have some data, try to create a minimal brief
-    if (isPartialData && (successfulProspectResearch.length > 0 || Object.keys(companyResearch).length > 0)) {
+    // T063: If brief generation fails but we have some data, try to create a minimal brief
+    if (isPartialData && (prospectResearch.length > 0 || Object.keys(companyResearch).length > 0)) {
       console.warn('Brief generation failed but partial data available, creating minimal brief');
       brief = {
         confidenceRating: 'LOW',
@@ -163,9 +227,10 @@ export async function orchestrateResearch(input: {
 
   return {
     brief,
-    prospectResearch: successfulProspectResearch,
+    prospectResearch,
     companyResearch,
     isPartialData,
+    multiPassResults: successfulMultiPassResults,
   };
 }
 
