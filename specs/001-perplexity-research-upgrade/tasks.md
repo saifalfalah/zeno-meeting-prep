@@ -187,17 +187,17 @@ Project structure follows Next.js 15 App Router conventions:
 
 **Purpose**: Testing, documentation, validation, and deployment preparation
 
-- [ ] T072 [P] Add timeout error handling test in __tests__/unit/services/perplexity.test.ts
-- [ ] T073 [P] Create end-to-end test in e2e/ to submit ad-hoc request with website and verify research brief generation
-- [ ] T074 [P] Update E2E tests in e2e/ to test ad-hoc form submission with website field
-- [ ] T075 [P] Verify all unit tests pass using npm test
+- [X] T072 [P] Add timeout error handling test in __tests__/unit/services/perplexity.test.ts
+- [X] T073 [P] Create end-to-end test in e2e/ to submit ad-hoc request with website and verify research brief generation
+- [X] T074 [P] Update E2E tests in e2e/ to test ad-hoc form submission with website field
+- [X] T075 [P] Verify all unit tests pass using npm test
 - [ ] T076 [P] Verify all E2E tests pass using npm run test:e2e
-- [ ] T077 [P] Run type checking using npm run type-check
-- [ ] T078 [P] Run linting using npm run lint
-- [ ] T079 Build project using npm run build to verify production build succeeds
+- [X] T077 [P] Run type checking using npm run type-check
+- [X] T078 [P] Run linting using npm run lint
+- [X] T079 Build project using npm run build to verify production build succeeds
 - [ ] T080 [P] Verify environment variable PERPLEXITY_API_KEY is set correctly
-- [ ] T081 [P] Update API documentation to document website field in API reference
-- [ ] T082 [P] Update user-facing documentation to add website field to user guide and explain prioritization logic
+- [X] T081 [P] Update API documentation to document website field in API reference
+- [X] T082 [P] Update user-facing documentation to add website field to user guide and explain prioritization logic
 - [ ] T083 Validate success criteria from spec.md: spot-check 10 briefs for website content (SC-001)
 - [ ] T084 Validate success criteria from spec.md: compare 5 briefs before/after upgrade (SC-002)
 - [ ] T085 Validate success criteria from spec.md: test website-only submissions (SC-003)

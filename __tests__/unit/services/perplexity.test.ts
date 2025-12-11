@@ -119,6 +119,33 @@ describe('Perplexity API Service', () => {
       );
     });
 
+    // T072: Test timeout error handling
+    it('should throw TimeoutError when request exceeds timeout limit', async () => {
+      // Mock a delayed response that exceeds the timeout
+      (global.fetch as ReturnType<typeof vi.fn>).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            setTimeout(
+              () =>
+                resolve({
+                  ok: true,
+                  json: async () => ({
+                    id: 'test-id',
+                    model: 'sonar-pro',
+                    choices: [{ message: { content: '{}' } }],
+                  }),
+                } as Response),
+              70000 // 70 seconds - exceeds default 60s timeout
+            );
+          })
+      );
+
+      // Should timeout and throw TimeoutError
+      await expect(
+        researchCompany('acmecorp.com', { timeout: 1000 })
+      ).rejects.toThrow();
+    });
+
     // T017: Test sonar-pro model usage
     it('should use sonar-pro model in API calls', async () => {
       const mockResponse = {

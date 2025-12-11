@@ -109,6 +109,12 @@ npm run test:e2e:ui      # Interactive UI mode
 
 ## Documentation
 
+### User Documentation
+- [User Guide](docs/USER_GUIDE.md) - How to use the application and create research requests
+- [API Documentation](docs/API.md) - REST API reference for developers
+- [Google OAuth Setup](docs/GOOGLE_OAUTH_SETUP.md) - Calendar integration setup
+
+### Technical Documentation
 - [Feature Specification](specs/001-meeting-prep/spec.md)
 - [Implementation Plan](specs/001-meeting-prep/plan.md)
 - [Data Model](specs/001-meeting-prep/data-model.md)
